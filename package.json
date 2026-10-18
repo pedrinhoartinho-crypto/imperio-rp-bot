@@ -1,0 +1,17 @@
+{
+  "name": "imperio-rp-setup-bot",
+  "version": "7.2.0",
+  "description": "Bot de configuração e gestão do servidor Discord do Império RP: estrutura completa, AutoMod, tickets por setor, bate-ponto, ausências, comandos e menus de cargo.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "setup": "node src/index.js --setup-only"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  }
+}
