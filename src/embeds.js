@@ -403,7 +403,7 @@ function buildHierarquia(ctx) {
       {
         name: 'Direção',
         value:
-          'Dono — proprietários do projeto (cargo compartilhado).\n' +
+          'Fundador — proprietários do projeto (cargo compartilhado).\n' +
           'Diretor Geral — administração total do projeto.\n' +
           'Diretor de Operações — operação, gestão de equipe e canais.\n' +
           'Diretor de Tecnologia — tecnologia, bots e sistemas.\n' +

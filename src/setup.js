@@ -98,6 +98,17 @@ function buildOverwrites(preset, ctx) {
   return overwrites;
 }
 
+const bitsOf = (arr) => arr.reduce((acc, p) => acc | p, 0n);
+
+function overwritesMatch(channel, expected) {
+  const actual = channel.permissionOverwrites.cache;
+  if (actual.size !== expected.length) return false;
+  return expected.every((o) => {
+    const cur = actual.get(o.id);
+    return cur && cur.allow.bitfield === bitsOf(o.allow) && cur.deny.bitfield === bitsOf(o.deny);
+  });
+}
+
 async function ensureRoles(ctx) {
   const { guild } = ctx;
   let created = 0;
@@ -118,6 +129,19 @@ async function ensureRoles(ctx) {
 
     if (role) {
       reused += 1;
+      const patch = {};
+      const color = parseInt(cfg.color.slice(1), 16);
+      if (role.color !== color) patch.color = cfg.color;
+      if (role.hoist !== (cfg.hoist ?? false)) patch.hoist = cfg.hoist ?? false;
+      if (role.mentionable !== (cfg.mentionable ?? false)) patch.mentionable = cfg.mentionable ?? false;
+      if (Object.keys(patch).length) {
+        try {
+          await role.edit(patch);
+          console.log(`[ok] Cargo ajustado: ${role.name}`);
+        } catch (error) {
+          console.warn(`[aviso] Não foi possível ajustar o cargo ${role.name}: ${error.message}`);
+        }
+      }
     } else {
       const permissions = (cfg.perms ?? []).reduce((acc, name) => acc | P[name], 0n);
       role = await guild.roles.create({
@@ -296,20 +320,22 @@ async function ensureChannels(ctx) {
         reused += 1;
         if (preset !== catCfg.preset) {
           const expected = buildOverwrites(preset, ctx);
-          const bits = (arr) => arr.reduce((acc, p) => acc | p, 0n);
-          const actual = channel.permissionOverwrites.cache;
-          const ok =
-            actual.size === expected.length &&
-            expected.every((o) => {
-              const cur = actual.get(o.id);
-              return cur && cur.allow.bitfield === bits(o.allow) && cur.deny.bitfield === bits(o.deny);
-            });
-          if (!ok) {
+          if (!overwritesMatch(channel, expected)) {
             try {
               await channel.permissionOverwrites.set(expected);
               console.log(`[ok] Permissões ajustadas: ${chCfg.name}`);
             } catch (error) {
               console.warn(`[aviso] Não foi possível ajustar as permissões de ${chCfg.name}: ${error.message}`);
+            }
+          }
+        } else if (channel.permissionOverwrites.cache.size) {
+          const expected = buildOverwrites(catCfg.preset, ctx);
+          if (overwritesMatch(channel, expected)) {
+            try {
+              await channel.permissionOverwrites.set([]);
+              console.log(`[ok] Permissões herdadas: ${chCfg.name}`);
+            } catch (error) {
+              console.warn(`[aviso] Não foi possível limpar as permissões de ${chCfg.name}: ${error.message}`);
             }
           }
         }

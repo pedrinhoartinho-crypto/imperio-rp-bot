@@ -85,7 +85,7 @@ const TICKETS = [
 const ROLES = [
   {
     key: 'dono',
-    name: 'Dono',
+    name: 'Fundador',
     color: '#7B0C0C',
     hoist: true,
     mentionable: false,
@@ -482,8 +482,8 @@ const CATEGORIES = [
     preset: 'public',
     channels: [
       { name: 'geral', type: 'voice' },
-      { name: 'roleplay-1', type: 'voice' },
-      { name: 'roleplay-2', type: 'voice' },
+      { name: 'ação-1', type: 'voice' },
+      { name: 'ação-2', type: 'voice' },
       { name: 'eventos', type: 'stage' },
       { name: 'afk', type: 'voice', ref: 'afk' },
     ],
@@ -549,14 +549,15 @@ const LEGACY_CHANNELS = {
   'logs-tickets': ['🧾・ʟᴏɢꜱ-ᴛɪᴄᴋᴇᴛꜱ', '🧾・logs-tickets', 'logs-tickets'],
   'diretoria': ['🏛️・ᴅɪʀᴇᴛᴏʀɪᴀ', '🏛️・diretoria', 'diretoria'],
   'sala-staff': ['🔊・ꜱᴀʟᴀ-ꜱᴛᴀꜰꜰ', '🔊・sala-staff', 'sala-staff'],
-  'roleplay-1': ['🎮・ʀᴏʟᴇᴘʟᴀʏ-1', '🎮・roleplay-1', 'Roleplay 1'],
-  'roleplay-2': ['🎮・ʀᴏʟᴇᴘʟᴀʏ-2', '🎮・roleplay-2', 'Roleplay 2'],
+  'ação-1': ['🎮・ʀᴏʟᴇᴘʟᴀʏ-1', '🎮・roleplay-1', 'roleplay-1', 'Roleplay 1'],
+  'ação-2': ['🎮・ʀᴏʟᴇᴘʟᴀʏ-2', '🎮・roleplay-2', 'roleplay-2', 'Roleplay 2'],
   'eventos': ['🎪・ᴇᴠᴇɴᴛᴏꜱ', '🎪・eventos', 'Eventos'],
   'afk': ['💤・ᴀꜰᴋ', '💤・afk', 'AFK'],
 };
 
 const LEGACY_ROLES = {
   'Cidadão': ['Membro'],
+  'Fundador': ['Dono'],
 };
 
 module.exports = {

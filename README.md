@@ -10,7 +10,7 @@ Facções e corporações operam em servidores próprios, com hierarquia interna
 
 | Cargo | Função |
 | --- | --- |
-| Dono | Proprietários do projeto (os donos usam o mesmo cargo, sem limite de pessoas) |
+| Fundador | Proprietários do projeto (os donos usam o mesmo cargo, sem limite de pessoas) |
 | Diretor Geral | Administração total |
 | Diretor de Operações | Operação, gestão de equipe e canais |
 | Diretor de Tecnologia | Tecnologia, bots e sistemas |
@@ -52,7 +52,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
 - **Equipe** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausências, registro-punições, logs-automod, logs-tickets, diretoria (só direção), sala-staff
 - **Tickets** — categoria privada onde os atendimentos são criados automaticamente
-- **Canais de voz** — geral, roleplay-1, roleplay-2, eventos (palco), afk
+- **Canais de voz** — geral, ação-1, ação-2, eventos (palco), afk
 
 ## Recursos em operação
 
