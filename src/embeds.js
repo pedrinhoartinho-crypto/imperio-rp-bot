@@ -15,20 +15,10 @@ const TICKET_STYLES = {
   lideranca: ButtonStyle.Secondary,
 };
 
-const DIVIDER = '━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-
-const SC = {
-  a: 'ᴀ', b: 'ʙ', c: 'ᴄ', d: 'ᴅ', e: 'ᴇ', f: 'ꜰ', g: 'ɢ', h: 'ʜ', i: 'ɪ', j: 'ᴊ', k: 'ᴋ', l: 'ʟ', m: 'ᴍ',
-  n: 'ɴ', o: 'ᴏ', p: 'ᴘ', q: 'ǫ', r: 'ʀ', s: 'ꜱ', t: 'ᴛ', u: 'ᴜ', v: 'ᴠ', w: 'ᴡ', x: 'x', y: 'ʏ', z: 'ᴢ',
-};
-
-function smallcaps(text) {
-  return [...String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '')]
-    .map((char) => SC[char.toLowerCase()] ?? char)
-    .join('');
+function head(text) {
+  return `**${text.charAt(0).toUpperCase()}${text.slice(1)}**`;
 }
 
-const head = (text) => `**◆ ${smallcaps(text)}**`;
 const note = (text) => `-# ${text}`;
 
 const guildNameOf = (ctx) => ctx.guild?.name ?? SERVIDOR;
@@ -100,40 +90,31 @@ function linksBlock() {
   return lines.length ? lines.join('\n') : 'Os links serão publicados em #anuncios-gerais.';
 }
 
-function withIcon(embed, ctx) {
-  const icon = ctx.guild ? ctx.guild.iconURL({ size: 256 }) : null;
-  if (icon) embed.setThumbnail(icon);
-  return embed;
-}
-
 function buildWelcome(ctx) {
-  return withIcon(
-    new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('Bem-vindo ao Servidor')
-      .setDescription(
-        [
-          '> **Seja bem-vindo(a) à nossa cidade.** Este é o seu ponto de partida.',
-          '',
-          head('roteiro inicial'),
-          `**1.** Leia ${channelRef(ctx, 'regras', '#regras')} e ${channelRef(ctx, 'rp-regras', '#regras-roleplay')} — valem para todos, sem exceção.`,
-          `**2.** Escolha seus cargos de notificação em ${channelRef(ctx, 'cargos', '#cargos')}.`,
-          `**3.** Acompanhe os comunicados em ${channelRef(ctx, 'anuncios', '#anuncios')}.`,
-          '**4.** Entre no jogo, crie seu personagem e comece a viver o roleplay.',
-          '',
-          head('suporte'),
-          `Dúvidas, problemas ou denúncias: ${channelRef(ctx, 'tickets', '#abrir-ticket')}. A equipe atende por lá.`,
-          '',
-          note('Ao permanecer no servidor, você concorda com as regras.'),
-        ].join('\n'),
-      )
-      .addFields(
-        { name: 'Links', value: linksBlock() },
-        { name: 'Ambiente', value: 'Roleplay no Roblox · Comunidade e suporte no Discord.' },
-        { name: 'Precisa de ajuda?', value: `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.` },
-      ),
-    ctx,
-  );
+  return new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle('Bem-vindo ao Servidor')
+    .setDescription(
+      [
+        '> **Seja bem-vindo(a) à nossa cidade.** Este é o seu ponto de partida.',
+        '',
+        head('roteiro inicial'),
+        `**1.** Leia ${channelRef(ctx, 'regras', '#regras')} e ${channelRef(ctx, 'rp-regras', '#regras-roleplay')} — valem para todos, sem exceção.`,
+        `**2.** Escolha seus cargos de notificação em ${channelRef(ctx, 'cargos', '#cargos')}.`,
+        `**3.** Acompanhe os comunicados em ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`,
+        '**4.** Entre no jogo, crie seu personagem e comece a viver o roleplay.',
+        '',
+        head('suporte'),
+        `Dúvidas, problemas ou denúncias: ${channelRef(ctx, 'tickets', '#abrir-ticket')}. A equipe atende por lá.`,
+        '',
+        note('Ao permanecer no servidor, você concorda com as regras.'),
+      ].join('\n'),
+    )
+    .addFields(
+      { name: 'Links', value: linksBlock() },
+      { name: 'Ambiente', value: 'Roleplay no Roblox · Comunidade e suporte no Discord.' },
+      { name: 'Precisa de ajuda?', value: `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.` },
+    );
 }
 
 function buildAnnouncements(ctx) {
@@ -157,7 +138,7 @@ function buildAnnouncements(ctx) {
     )
     .addFields(
       { name: 'Notificações', value: `Pegue o cargo de avisos em ${channelRef(ctx, 'cargos', '#cargos')} para ser marcado(a).` },
-      { name: 'Atualizações', value: `Notas de versão ficam em ${channelRef(ctx, 'atualizacoes', '#atualizacoes')}.` },
+      { name: 'Atualizações', value: `Notas de versão ficam em ${channelRef(ctx, 'atualizacoes', '#atualizações')}.` },
     );
 }
 
@@ -221,7 +202,7 @@ function buildRpRules(ctx) {
         '**6. Powergaming.** Ações impossíveis ou que forcem a decisão de outro jogador são proibidas.',
         '',
         head('convivência'),
-        `**7. Ações.** Siga as regras de engajamento e registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-acoes')}.`,
+        `**7. Ações.** Siga as regras de engajamento e registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-ações')}.`,
         `**8. Fora do personagem.** Conversa OOC apenas em ${channelRef(ctx, 'pausa', '#rp-pausa')}.`,
         '**9. Hierarquia.** Ordens de líderes e sub-líderes valem dentro do RP.',
         '',
@@ -241,33 +222,30 @@ function buildRpRules(ctx) {
 }
 
 function buildAbout(ctx) {
-  return withIcon(
-    new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('Sobre o Servidor')
-      .setDescription(
-        [
-          '> **Bem-vindo à nossa cidade.** Um servidor de roleplay de temática carioca no Roblox.',
-          '',
-          head('o projeto'),
-          'Aqui ficam a comunidade, os comunicados e o suporte. O roleplay acontece dentro do jogo.',
-          '',
-          head('facções e organizações'),
-          'Operam em servidores próprios, com recrutamento e regras internas. As lideranças recebem cargos de representação aqui.',
-          '',
-          head('primeiros passos'),
-          `**1.** Leia ${channelRef(ctx, 'regras', '#regras')} e ${channelRef(ctx, 'rp-regras', '#regras-roleplay')}.`,
-          `**2.** Acompanhe ${channelRef(ctx, 'anuncios', '#anuncios')}.`,
-          '**3.** Entre no jogo pelo link e comece a jogar.',
-        ].join('\n'),
-      )
-      .addFields(
-        { name: 'Links', value: linksBlock() },
-        { name: 'Suporte', value: `Atendimento privado em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.` },
-        { name: 'Equipe', value: `Quer fazer parte? Veja as frentes em ${channelRef(ctx, 'seja-staff', '#seja-staff')}.` },
-      ),
-    ctx,
-  );
+  return new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle('Sobre o Servidor')
+    .setDescription(
+      [
+        '> **Bem-vindo à nossa cidade.** Um servidor de roleplay de temática carioca no Roblox.',
+        '',
+        head('o projeto'),
+        'Aqui ficam a comunidade, os comunicados e o suporte. O roleplay acontece dentro do jogo.',
+        '',
+        head('facções e organizações'),
+        'Operam em servidores próprios, com recrutamento e regras internas. As lideranças recebem cargos de representação aqui.',
+        '',
+        head('primeiros passos'),
+        `**1.** Leia ${channelRef(ctx, 'regras', '#regras')} e ${channelRef(ctx, 'rp-regras', '#regras-roleplay')}.`,
+        `**2.** Acompanhe ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`,
+        '**3.** Entre no jogo pelo link e comece a jogar.',
+      ].join('\n'),
+    )
+    .addFields(
+      { name: 'Links', value: linksBlock() },
+      { name: 'Suporte', value: `Atendimento privado em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.` },
+      { name: 'Equipe', value: `Quer fazer parte? Veja as frentes em ${channelRef(ctx, 'seja-staff', '#seja-staff')}.` },
+    );
 }
 
 function buildHelp(ctx) {
@@ -288,7 +266,7 @@ function buildHelp(ctx) {
     )
     .addFields(
       { name: 'Dúvidas e problemas', value: `Ticket de **Suporte** em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.` },
-      { name: 'Denúncias', value: `Provas (vídeo ou print) em ${channelRef(ctx, 'denuncias', '#denuncias')} ou pelo ticket de **Denúncia**.` },
+      { name: 'Denúncias', value: `Provas (vídeo ou print) em ${channelRef(ctx, 'denuncias', '#denúncias')} ou pelo ticket de **Denúncia**.` },
       { name: 'Contra a equipe', value: `Reclamações sobre membros da equipe vão para ${channelRef(ctx, 'corregedoria', '#corregedoria')}.` },
       { name: 'Recursos', value: `Revisão de punição pelo ticket de **Recurso** (${channelRef(ctx, 'recursos', '#recursos')}).` },
       { name: 'Bugs', value: `Problemas no jogo ou no servidor: ${channelRef(ctx, 'bugs', '#reportar-bugs')}.` },
@@ -419,7 +397,7 @@ function buildHierarquia(ctx) {
       {
         name: 'Diretrizes',
         value:
-          `Punições seguem a tabela oficial e devem ser registradas em ${channelRef(ctx, 'registro', '#registro-punicoes')}.\n` +
+          `Punições seguem a tabela oficial e devem ser registradas em ${channelRef(ctx, 'registro', '#registro-punições')}.\n` +
           `Assuntos internos e decisões ficam em ${channelRef(ctx, 'diretoria', '#diretoria')}.`,
       },
       {
@@ -447,7 +425,7 @@ function buildBatePonto(ctx) {
     )
     .addFields(
       { name: 'Regras', value: 'Registre ponto apenas em serviço. Inconsistências são auditadas pela gestão.' },
-      { name: 'Imprevistos', value: `Vai precisar parar? Registre a ausência em ${channelRef(ctx, 'ausencias', '#ausencias')}.` },
+      { name: 'Imprevistos', value: `Vai precisar parar? Registre a ausência em ${channelRef(ctx, 'ausencias', '#ausências')}.` },
     );
 }
 
@@ -472,32 +450,29 @@ function buildAusencias(ctx) {
 }
 
 function buildEquipes(ctx) {
-  return withIcon(
-    new EmbedBuilder()
-      .setColor(0x9c640c)
-      .setTitle('Faça parte da equipe')
-      .setDescription(
-        [
-          '> **O projeto cresce com gente boa.** Estas são as frentes de trabalho abertas.',
-          '',
-          'Escolha a frente que combina com você e candidate-se. Experiência ajuda, mas dedicação vale mais.',
-          '',
-          head('como participar'),
-          `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} e informe a equipe desejada.`,
-        ].join('\n'),
-      )
-      .addFields(
-        { name: 'Equipe Staff', value: 'Tag base de todos os membros da equipe, de qualquer frente.' },
-        { name: 'Equipe Império', value: 'Moderação, suporte e operação do dia a dia no servidor.' },
-        { name: 'Staff de Jogo', value: 'Supervisão e suporte dentro do servidor Roblox.' },
-        { name: 'Equipe de Desenvolvimento', value: 'Programação do jogo no Roblox, sistemas e correções.' },
-        { name: 'Equipe de Eventos', value: 'Criação e condução de eventos para a comunidade.' },
-        { name: 'Equipe de Design', value: 'Identidade visual, banners, thumbs e materiais do projeto.' },
-        { name: 'Equipe de Marketing', value: 'Divulgação, redes sociais, vídeos e crescimento do projeto.' },
-        { name: 'Requisitos', value: 'Comprometimento, postura e disponibilidade mínima semanal.' },
-      ),
-    ctx,
-  );
+  return new EmbedBuilder()
+    .setColor(0x9c640c)
+    .setTitle('Faça parte da equipe')
+    .setDescription(
+      [
+        '> **O projeto cresce com gente boa.** Estas são as frentes de trabalho abertas.',
+        '',
+        'Escolha a frente que combina com você e candidate-se. Experiência ajuda, mas dedicação vale mais.',
+        '',
+        head('como participar'),
+        `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} e informe a equipe desejada.`,
+      ].join('\n'),
+    )
+    .addFields(
+      { name: 'Equipe Staff', value: 'Tag base de todos os membros da equipe, de qualquer frente.' },
+      { name: 'Equipe Império', value: 'Moderação, suporte e operação do dia a dia no servidor.' },
+      { name: 'Staff de Jogo', value: 'Supervisão e suporte dentro do servidor Roblox.' },
+      { name: 'Equipe de Desenvolvimento', value: 'Programação do jogo no Roblox, sistemas e correções.' },
+      { name: 'Equipe de Eventos', value: 'Criação e condução de eventos para a comunidade.' },
+      { name: 'Equipe de Design', value: 'Identidade visual, banners, thumbs e materiais do projeto.' },
+      { name: 'Equipe de Marketing', value: 'Divulgação, redes sociais, vídeos e crescimento do projeto.' },
+      { name: 'Requisitos', value: 'Comprometimento, postura e disponibilidade mínima semanal.' },
+    );
 }
 
 function buildTags(ctx) {
@@ -542,7 +517,7 @@ function buildChangelog(ctx) {
       ].join('\n'),
     )
     .addFields(
-      { name: 'Comunicados gerais', value: `Anúncios e avisos importantes em ${channelRef(ctx, 'anuncios', '#anuncios')}.` },
+      { name: 'Comunicados gerais', value: `Anúncios e avisos importantes em ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.` },
       { name: 'Problemas', value: `Reporte bugs em ${channelRef(ctx, 'bugs', '#reportar-bugs')} para entrarem nas próximas notas.` },
     );
 }
@@ -584,8 +559,8 @@ function buildPolls(ctx) {
       ].join('\n'),
     )
     .addFields(
-      { name: 'Sugestões', value: `Suas ideias ficam em ${channelRef(ctx, 'sugestoes', '#sugestoes')}.` },
-      { name: 'Resultados', value: `As decisões são anunciadas em ${channelRef(ctx, 'anuncios', '#anuncios')}.` },
+      { name: 'Sugestões', value: `Suas ideias ficam em ${channelRef(ctx, 'sugestoes', '#sugestões')}.` },
+      { name: 'Resultados', value: `As decisões são anunciadas em ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.` },
     );
 }
 
@@ -601,7 +576,7 @@ function buildStatus(ctx) {
       ].join('\n'),
     )
     .addFields(
-      { name: 'Estado do jogo', value: `Online, em manutenção ou fechado — avisado em ${channelRef(ctx, 'anuncios', '#anuncios')}.`, inline: true },
+      { name: 'Estado do jogo', value: `Online, em manutenção ou fechado — avisado em ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`, inline: true },
       { name: 'Manutenção', value: 'Programada e avisada com antecedência.', inline: true },
       { name: 'Problemas', value: `Reporte em ${channelRef(ctx, 'bugs', '#reportar-bugs')}.` },
     );
@@ -673,7 +648,7 @@ function buildSuggestions(ctx) {
     )
     .addFields(
       { name: 'O que ajuda', value: 'Detalhar o problema, a proposta e exemplos práticos.' },
-      { name: 'Resultado', value: `Sugestões aprovadas viram atualização — acompanhe ${channelRef(ctx, 'atualizacoes', '#atualizacoes')}.` },
+      { name: 'Resultado', value: `Sugestões aprovadas viram atualização — acompanhe ${channelRef(ctx, 'atualizacoes', '#atualizações')}.` },
       { name: 'Votação', value: 'Sugestões com boa receptação são priorizadas pela administração.' },
     );
 }
@@ -714,7 +689,7 @@ function buildRpGeneral(ctx) {
         head('antes de jogar'),
         `**1.** Leia ${channelRef(ctx, 'rp-regras', '#regras-roleplay')} e ${channelRef(ctx, 'regras', '#regras')}.`,
         '**2.** Mantenha a interpretação do começo ao fim.',
-        `**3.** Registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-acoes')}.`,
+        `**3.** Registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-ações')}.`,
         '',
         note('Quebrar o personagem sem motivo é falta de RP.'),
       ].join('\n'),
@@ -999,40 +974,41 @@ function buildBoardroom(ctx) {
     )
     .addFields(
       { name: 'Pauta', value: 'Decisões registradas aqui têm prioridade máxima na execução.' },
-      { name: 'Punições', value: `Registros oficiais em ${channelRef(ctx, 'registro', '#registro-punicoes')}.` },
+      { name: 'Punições', value: `Registros oficiais em ${channelRef(ctx, 'registro', '#registro-punições')}.` },
     );
 }
 
 function buildJoinWelcome(member, ctx) {
   const name = guildNameOf({ guild: member.guild });
   const icon = member.guild?.iconURL?.({ size: 256 }) ?? null;
+  const count = member.guild?.memberCount ?? '?';
 
   const embed = new EmbedBuilder()
     .setColor(PANEL_COLORS.welcome)
-    .setTitle(stylize('Bem-vindo!'))
+    .setTitle('Bem-vindo!')
     .setDescription(
       `<@${member.id}> acabou de chegar.\n\n` +
-        `Aqui ficam a comunidade, os comunicados e o suporte. O roleplay acontece no Roblox.\n\n${DIVIDER}`,
+        'Aqui ficam a comunidade, os comunicados e o suporte. O roleplay acontece no Roblox.',
     )
     .addFields(
       {
-        name: '▸ Comece por aqui',
+        name: 'Comece por aqui',
         value:
           `1. Leia ${channelRef(ctx, 'regras', '#regras')} e as regras de roleplay.\n` +
           `2. Escolha seus cargos de notificação em ${channelRef(ctx, 'cargos', '#cargos')}.\n` +
           `3. Acompanhe ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`,
       },
       {
-        name: '▸ Precisa de ajuda?',
+        name: 'Precisa de ajuda?',
         value: `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.`,
       },
     )
     .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
-    .setFooter({ text: `⊹ ᴍᴇᴍʙʀᴏ nº ${member.guild?.memberCount ?? '?'}` });
+    .setFooter({ text: `Membro nº ${count}` });
 
   if (icon) {
     embed.setAuthor({ name, iconURL: icon });
-    embed.setFooter({ text: `⊹ ᴍᴇᴍʙʀᴏ nº ${member.guild?.memberCount ?? '?'}`, iconURL: icon });
+    embed.setFooter({ text: `Membro nº ${count}`, iconURL: icon });
   } else {
     embed.setAuthor({ name });
   }
@@ -1128,28 +1104,20 @@ function buildMessage(key, ctx, options = {}) {
   const builder = BUILDERS[key];
   if (!builder) return null;
   const embed = builder(ctx);
+  if (embed.data.description) {
+    embed.setDescription(embed.data.description.replace(/^>\s?/gm, ''));
+  }
   if (!options.plain) {
-    if (embed.data.title) embed.setTitle(stylize(embed.data.title));
-    if (embed.data.description) embed.setDescription(`${embed.data.description}\n\n${DIVIDER}`);
     if (PANEL_COLORS[key] !== undefined) embed.setColor(PANEL_COLORS[key]);
-    if (embed.data.fields?.length) {
-      embed.setFields(
-        ...embed.data.fields.map((field) => ({
-          ...field,
-          name: field.name.startsWith('▸') ? field.name : `▸ ${field.name}`,
-        })),
-      );
-    }
 
     const name = guildNameOf(ctx);
     const icon = ctx.guild?.iconURL?.({ size: 256 }) ?? null;
     if (icon) {
       embed.setAuthor({ name, iconURL: icon });
-      if (!embed.data.thumbnail) embed.setThumbnail(icon);
-      embed.setFooter({ text: `⊹ ᴘᴀɴᴇʟ ᴏꜰɪᴄɪᴀʟ・ᴠ${PANEL_VERSION}`, iconURL: icon });
+      embed.setFooter({ text: `Painel oficial · v${PANEL_VERSION}`, iconURL: icon });
     } else {
       embed.setAuthor({ name });
-      embed.setFooter({ text: `⊹ ᴘᴀɴᴇʟ ᴏꜰɪᴄɪᴀʟ・ᴠ${PANEL_VERSION}` });
+      embed.setFooter({ text: `Painel oficial · v${PANEL_VERSION}` });
     }
   }
   const payload = { embeds: [embed] };

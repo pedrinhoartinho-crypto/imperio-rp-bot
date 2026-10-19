@@ -41,23 +41,23 @@ Facções e organizações não têm canais aqui; elas operam em servidores pró
 
 ### Canais
 
-Todos os canais e categorias usam fonte estilizada (small caps) no padrão dos RPs:
+Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categorias com nome normal. Os canais de aviso usam o **tipo Anúncio** do Discord — por isso aparecem com o ícone de megafone na lista:
 
-- **📜・ɪɴꜰᴏʀᴍᴀᴄᴏᴇꜱ** (só a equipe escreve) — bem-vindo, sobre-o-servidor, status-servidor
-- **📢・ᴀᴠɪꜱᴏꜱ** (só a equipe escreve) — anuncios-gerais, atualizacoes, spoilers, enquetes
-- **📋・ʀᴇɢʀᴀꜱ** (só a equipe escreve) — regras, regras-roleplay
-- **💬・ᴄᴏᴍᴜɴɪᴅᴀᴅᴇ** — geral, midia, sugestoes, parcerias, cargos
-- **🎭・ʀᴏʟᴇᴘʟᴀʏ** — rp-geral, rp-pausa, avisos-acoes, vagas
-- **🆘・ꜱᴜᴘᴏʀᴛᴇ** — ajuda, abrir-ticket, denuncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
-- **📝・ᴄᴀɴᴅɪᴅᴀᴛᴜʀᴀꜱ** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
-- **🛡️・ᴇǫᴜɪᴘᴇ** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausencias, registro-punicoes, logs-automod, logs-tickets, diretoria (só direção), sala-staff
-- **🎫・ᴛɪᴄᴋᴇᴛꜱ** — categoria privada onde os atendimentos são criados automaticamente
-- **🔊・ᴄᴀɴᴀɪꜱ-ᴅᴇ-ᴠᴏᴢ** — geral, roleplay-1, roleplay-2, eventos (palco), afk
+- **Informações** (só a equipe escreve) — boas-vindas, sobre-o-servidor, status-servidor (anúncio)
+- **Avisos** (só a equipe escreve) — anuncios-gerais, atualizações (anúncio), spoilers, enquetes
+- **Regras** (só a equipe escreve) — regras, regras-roleplay
+- **Comunidade** — geral, mídia, sugestões, parcerias, cargos
+- **Roleplay** — rp-geral, rp-pausa, avisos-ações, vagas
+- **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
+- **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
+- **Equipe** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausências, registro-punições, logs-automod, logs-tickets, diretoria (só direção), sala-staff
+- **Tickets** — categoria privada onde os atendimentos são criados automaticamente
+- **Canais de voz** — geral, roleplay-1, roleplay-2, eventos (palco), afk
 
 ## Recursos em operação
 
 ### Tickets profissionais por setor
-Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria** e **Liderança**. O bot cria um canal privado na categoria 🎫・tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
+Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria** e **Liderança**. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
 
 - **Assumir atendimento:** qualquer membro da equipe pode assumir; o botão mostra quem está atendendo.
 - **Fechar ticket:** disponível para o autor e para a equipe. O bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
@@ -82,10 +82,10 @@ Todos restritos à equipe.
 Toda mensagem em #sugestoes recebe automaticamente os votos 👍 e 👎 do bot.
 
 ### Boas-vindas automáticas
-Quem entra no servidor recebe o cargo Cidadão automaticamente (autorole) e uma mensagem de boas-vindas no canal #bem-vindo, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Quem já estava no servidor também recebe o cargo na próxima inicialização. Requer a Server Members Intent ligada no portal do bot.
+Quem entra no servidor recebe o cargo Cidadão automaticamente (autorole) e uma mensagem de boas-vindas no canal #boas-vindas, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Quem já estava no servidor também recebe o cargo na próxima inicialização. Requer a Server Members Intent ligada no portal do bot.
 
 ### Painel em todos os canais
-Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), com o nome real do servidor no topo (renomeou o servidor? os painéis se atualizam no próximo reinício), ícone do servidor, paleta de cores por seção, thumbnail, campos marcados e rodapé de versão. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
+Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), no estilo limpo — título em negrito, sem enfeites, com o nome real do servidor (renomeou o servidor? os painéis se atualizam no próximo reinício) e rodapé `Painel oficial`. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
 
 ### AutoMod
 - Anti-spam
@@ -96,14 +96,14 @@ Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (ob
 Alertas caem em #logs-automod. Todos os cargos da equipe são isentos.
 
 ### Ajustes do servidor
-- Verificação Média, filtro de conteúdo explícito para todos e notificações apenas de menções
-- Canal de sistema em #bem-vindo e AFK em 5 minutos
-- Se o servidor for Comunidade: #regras e #atualizacoes definidos como canais oficiais
+- Idioma pt-BR, verificação Baixa, filtro de conteúdo explícito para todos e notificações apenas de menções
+- Comunidade ativada pelo bot, com #regras como canal de regras e #anuncios-gerais como canal de atualizações
+- AFK em #afk após 5 minutos
 
 ### Menus e organização
 - #cargos com botões para Ping Anúncios e Ping Ações
 - #hierarquia-staff com organograma (direção, gestão, linha de frente e equipes)
-- #registro-punicoes para registro de toda punição aplicada
+- #registro-punições para registro de toda punição aplicada
 - #diretoria restrita à direção
 
 ## Instalação
@@ -149,48 +149,12 @@ npm run setup   # monta a estrutura e sai (execução única)
 npm start       # monta, registra os comandos e mantém o bot online
 ```
 
-## Deploy no Discloud (bot 24/7)
-
-O projeto já vem com o `discloud.config` pronto na raiz:
-
-```
-NAME=Imperio RP Bot
-TYPE=bot
-MAIN=src/index.js
-START=npm run start
-RAM=100
-VERSION=latest
-AUTORESTART=true
-```
-
-### 1. Variáveis de ambiente
-No painel da Discloud (aba de variáveis de ambiente do app), adicione:
-
-```
-DISCORD_TOKEN=seu_token
-GUILD_ID=id_do_servidor
-```
-
-Nunca envie o arquivo `.env` no zip — as variáveis ficam no painel.
-
-### 2. Compactar o projeto
-Gere um `.zip` da pasta do projeto **sem** `node_modules`, `data` e `.env` (o bot instala as dependências sozinho na hospedagem). Se preferir, há um zip pronto gerado fora da pasta do projeto.
-
-### 3. Enviar
-No servidor Discord da Discloud, use o comando `.upconfig` no canal de comandos e envie o zip. A Discloud instala as dependências e inicia com `npm start`; o bot fica online 24/7.
-
-### Observações
-- **Atualizações:** edite o projeto, gere um novo zip e envie de novo — as variáveis de ambiente continuam salvas.
-- **Dados do bate-ponto:** o arquivo `data/bateponto.json` pode ser zerado em atualizações da hospedagem; mantenha backups locais se precisar do histórico.
-- **Memória:** se o bot reiniciar sozinho, aumente o `RAM` no `discloud.config` (ex.: 150) conforme o seu plano.
-- **Reexecução do setup:** a cada inicialização o bot confere a estrutura e completa o que faltar, sem duplicar.
-
 ## Deploy grátis no Render (24/7)
 
 O Render free roda o bot 24/7 usando o keep-alive embutido: o bot abre um servidor HTTP e faz auto-ping a cada 10 minutos (via `RENDER_EXTERNAL_URL`), driblando o spin-down de 15 minutos do plano Free. O `render.yaml` já está pronto na raiz.
 
 ### 1. Subir o código para o GitHub
-Crie um repositório (pode ser privado) e envie o projeto. `node_modules`, `.env` e `data` ficam fora pelo `.gitignore`.
+Crie um repositório no GitHub e envie o projeto. `node_modules`, `.env` e `data` ficam fora pelo `.gitignore`.
 
 ### 2. Criar o serviço no Render
 1. Crie a conta em <https://render.com> entrando com o GitHub;
@@ -209,11 +173,11 @@ Crie um repositório (pode ser privado) e envie o projeto. `node_modules`, `.env
 - **Tickets, botões e comandos:** funcionam enquanto o bot estiver online (`npm start`).
 - **Punições:** aplique o cargo Mutado (bloqueia escrita, reação e fala) e registre em #registro-punicoes ou use `/advertir`.
 - **Cargo do bot:** mantenha-o no topo da hierarquia do servidor.
-- **Palco:** o canal Eventos só é criado se o servidor tiver o recurso Comunidade ativado.
+- **Palco:** o canal Eventos (palco) é criado automaticamente quando o bot ativa a Comunidade.
 - **Dados:** o bate-ponto fica em `data/bateponto.json` (fora do controle de versão).
 - **Reexecução:** rodar `npm run setup` de novo completa o que faltar sem duplicar e republica painéis de canal que estiverem faltando.
 - **Atualização de versões antigas:** canais e categorias de versões anteriores (sem emoji ou com nomes antigos) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada.
-- **Autorole e boas-vindas:** todo membro que entra recebe o cargo Cidadão e uma mensagem de boas-vindas em #bem-vindo (requer Server Members Intent ligada no portal, veja a Instalação).
+- **Autorole e boas-vindas:** todo membro que entra recebe o cargo Cidadão e uma mensagem de boas-vindas em #boas-vindas (requer Server Members Intent ligada no portal, veja a Instalação).
 
 ## Personalização rápida
 

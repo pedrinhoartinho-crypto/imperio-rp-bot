@@ -3,7 +3,6 @@ const {
   EmbedBuilder,
 } = require('discord.js');
 const { channelName } = require('./config');
-const { stylize } = require('./embeds');
 const { isStaffMember, replyEphemeral } = require('./components');
 
 const COMMANDS = [
@@ -140,7 +139,7 @@ async function handleAdvertir(interaction) {
 
   const embed = new EmbedBuilder()
     .setColor(0xd35400)
-    .setTitle(stylize('Advertência aplicada'))
+    .setTitle('Advertência aplicada')
     .addFields(
       { name: 'Membro', value: `${alvo.user.tag} (${alvo.id})`, inline: true },
       { name: 'Aplicada por', value: `${interaction.user.tag}`, inline: true },

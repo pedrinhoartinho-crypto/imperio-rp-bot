@@ -1,9 +1,10 @@
 const {
   ChannelType,
+  Routes,
   PermissionFlagsBits: P,
   GuildVerificationLevel,
-  ExplicitContentFilterLevel,
-  DefaultMessageNotificationLevel,
+  GuildExplicitContentFilter,
+  GuildDefaultMessageNotifications,
   AutoModerationRuleTriggerType: Trigger,
   AutoModerationRuleKeywordPresetType: Preset,
   AutoModerationActionType: Action,
@@ -26,6 +27,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const TYPE_BY_NAME = {
   text: ChannelType.GuildText,
+  announcement: ChannelType.GuildAnnouncement,
   voice: ChannelType.GuildVoice,
   stage: ChannelType.GuildStageVoice,
 };
@@ -224,7 +226,7 @@ async function ensureChannels(ctx) {
 
       if (!channel && LEGACY_CHANNELS[chCfg.name]) {
         const typeMatches = (c) =>
-          type === ChannelType.GuildText
+          type === ChannelType.GuildText || type === ChannelType.GuildAnnouncement
             ? c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement
             : c.type === type;
 
@@ -247,6 +249,18 @@ async function ensureChannels(ctx) {
 
       const isNew = !channel;
 
+      if (!isNew && type === ChannelType.GuildAnnouncement && channel.type === ChannelType.GuildText) {
+        try {
+          await guild.client.rest.patch(Routes.channel(channel.id), {
+            body: { type: ChannelType.GuildAnnouncement },
+            reason: `${SERVIDOR} · configuração automática`,
+          });
+          console.log(`[ok] Canal convertido para anúncios: ${chCfg.name}`);
+        } catch (error) {
+          console.warn(`[aviso] Não foi possível converter ${chCfg.name} em canal de anúncios: ${error.message}`);
+        }
+      }
+
       if (isNew) {
         const options = {
           name: chCfg.name,
@@ -254,7 +268,7 @@ async function ensureChannels(ctx) {
           parent: category.id,
           reason: `${SERVIDOR} · configuração automática`,
         };
-        if (type === ChannelType.GuildText) options.topic = chCfg.topic;
+        if (type === ChannelType.GuildText || type === ChannelType.GuildAnnouncement) options.topic = chCfg.topic;
         if (chCfg.userLimit) options.userLimit = chCfg.userLimit;
         if (preset !== catCfg.preset) options.permissionOverwrites = buildOverwrites(preset, ctx);
 
@@ -296,8 +310,11 @@ async function ensureChannels(ctx) {
         const author = payload.embeds[0]?.data?.author?.name;
         const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
         const accepted = new Set([styledTitle, plainTitle].filter(Boolean));
-        for (const title of LEGACY_TITLES[key] ?? []) accepted.add(title);
-        for (const title of LEGACY_TITLES[key] ?? []) accepted.add(stylize(title));
+        for (const title of [...accepted]) accepted.add(stylize(title));
+        for (const title of LEGACY_TITLES[key] ?? []) {
+          accepted.add(title);
+          accepted.add(stylize(title));
+        }
         const mine = recent.filter((message) => message.author.id === ctx.botId);
 
         const current = mine.find((message) =>
@@ -332,11 +349,10 @@ async function applyGuildSettings(ctx) {
 
   try {
     const base = {
-      verificationLevel: GuildVerificationLevel.Medium,
-      explicitContentFilter: ExplicitContentFilterLevel.AllMembers,
-      defaultMessageNotifications: DefaultMessageNotificationLevel.OnlyMentions,
+      verificationLevel: GuildVerificationLevel.Low,
+      explicitContentFilter: GuildExplicitContentFilter.AllMembers,
+      defaultMessageNotifications: GuildDefaultMessageNotifications.OnlyMentions,
     };
-    if (ctx.channels['bem-vindo']) base.systemChannel = ctx.channels['bem-vindo'];
     if (ctx.channels['afk']) {
       base.afkChannel = ctx.channels['afk'];
       base.afkTimeout = 300;
@@ -347,13 +363,18 @@ async function applyGuildSettings(ctx) {
     console.warn(`[aviso] Não foi possível aplicar as configurações do servidor: ${error.message}`);
   }
 
-  if (guild.features.includes('COMMUNITY')) {
+  if (ctx.channels.regras && (ctx.channels.anuncios || ctx.channels.atualizacoes)) {
     try {
-      await guild.edit({
+      const update = {
         rulesChannel: ctx.channels.regras,
-        publicUpdatesChannel: ctx.channels.atualizacoes,
-      });
-      console.log('[ok] Canais de regras e atualizações definidos.');
+        publicUpdatesChannel: ctx.channels.anuncios ?? ctx.channels.atualizacoes,
+      };
+      if (!guild.features.includes('COMMUNITY')) {
+        update.features = [...guild.features, 'COMMUNITY'];
+        update.verificationLevel = GuildVerificationLevel.Low;
+      }
+      await guild.edit(update);
+      console.log('[ok] Comunidade configurada (regras e atualizações).');
     } catch (error) {
       console.warn(`[aviso] Não foi possível definir os canais de comunidade: ${error.message}`);
     }

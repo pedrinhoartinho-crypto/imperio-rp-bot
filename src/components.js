@@ -13,7 +13,7 @@ const {
   TextInputStyle,
 } = require('discord.js');
 const { ROLES, STAFF_KEYS, TICKET_JUNIOR_KEYS, TICKETS, CATEGORY_REFS, channelName, AUTO_ROLE_KEY } = require('./config');
-const { stylize, buildJoinWelcome } = require('./embeds');
+const { buildJoinWelcome } = require('./embeds');
 const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -133,7 +133,7 @@ async function openTicket(interaction, key) {
 
   const embed = new EmbedBuilder()
     .setColor(cfg.color)
-    .setTitle(stylize(cfg.title))
+    .setTitle(cfg.title)
     .setDescription(cfg.instructions)
     .setFooter({ text: 'Atendimento privado · aguarde a equipe' });
 
@@ -338,7 +338,7 @@ async function handleAusenciaSubmit(interaction) {
 
   const embed = new EmbedBuilder()
     .setColor(0xa04000)
-    .setTitle(stylize('Ausência registrada'))
+    .setTitle('Ausência registrada')
     .addFields(
       { name: 'Membro', value: `<@${interaction.user.id}>`, inline: true },
       { name: 'Período', value: `${inicio} até ${fim}`, inline: true },
