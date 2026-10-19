@@ -2,7 +2,7 @@ const {
   SlashCommandBuilder,
   EmbedBuilder,
 } = require('discord.js');
-const { SERVIDOR, channelName } = require('./config');
+const { channelName } = require('./config');
 const { stylize } = require('./embeds');
 const { isStaffMember, replyEphemeral } = require('./components');
 
@@ -64,7 +64,7 @@ async function handleAnunciar(interaction) {
     .setTitle(titulo)
     .setDescription(mensagem)
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-    .setFooter({ text: SERVIDOR })
+    .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? undefined })
     .setTimestamp();
 
   const pingRole = interaction.guild.roles.cache.find((role) => role.name === 'Ping Anúncios');
@@ -152,7 +152,7 @@ async function handleAdvertir(interaction) {
   if (registro) await registro.send({ embeds: [embed] }).catch(() => {});
 
   await alvo
-    .send(`Você recebeu uma advertência no ${SERVIDOR}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #${channelName('tickets')}.`)
+    .send(`Você recebeu uma advertência no ${interaction.guild.name}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #${channelName('tickets')}.`)
     .catch(() => {});
 
   await replyEphemeral(interaction, `Advertência aplicada a ${alvo}.`);

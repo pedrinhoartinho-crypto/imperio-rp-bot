@@ -85,7 +85,7 @@ Toda mensagem em #sugestoes recebe automaticamente os votos 👍 e 👎 do bot.
 Quem entra no servidor recebe o cargo Cidadão automaticamente (autorole) e uma mensagem de boas-vindas no canal #bem-vindo, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Quem já estava no servidor também recebe o cargo na próxima inicialização. Requer a Server Members Intent ligada no portal do bot.
 
 ### Painel em todos os canais
-Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), com autor e ícone do servidor, thumbnail, rodapé de versão e divisórias decorativas. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
+Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), com o nome real do servidor no topo (renomeou o servidor? os painéis se atualizam no próximo reinício), ícone do servidor, paleta de cores por seção, thumbnail, campos marcados e rodapé de versão. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
 
 ### AutoMod
 - Anti-spam
@@ -219,7 +219,7 @@ Crie um repositório (pode ser privado) e envie o projeto. `node_modules`, `.env
 
 | Onde | O que muda |
 | --- | --- |
-| `SERVIDOR` | Nome exibido nos embeds |
+| `SERVIDOR` | Nome reserva (os embeds usam o nome real do servidor automaticamente) |
 | `LINKS` | Link do jogo, grupo e Trello |
 | `MENU_ROLE_KEYS` | Cargos com botão em #cargos |
 | `TICKETS` | Setores de atendimento, cores e instruções |

@@ -17,6 +17,52 @@ const TICKET_STYLES = {
 
 const DIVIDER = '━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
+const guildNameOf = (ctx) => ctx.guild?.name ?? SERVIDOR;
+
+const LEGACY_TITLES = {
+  welcome: ['Bem-vindo ao Império RP', 'Bem-vindo ao ✦ 𝓘𝓶𝓹𝓮𝓻𝓲𝓸 𝓡𝓟 ✦'],
+  about: ['Império RP', '✦ 𝓘𝓶𝓹𝓮𝓻𝓲𝓸 𝓡𝓟 ✦'],
+};
+
+const PANEL_COLORS = {
+  welcome: 0xd4af37,
+  about: 0xd4af37,
+  cargos: 0xd4af37,
+  equipes: 0xd4af37,
+  tags: 0xd4af37,
+  partnerships: 0xd4af37,
+  media: 0xd4af37,
+  'staff-review': 0xd4af37,
+  rules: 0x8b0000,
+  'rp-rules': 0x8b0000,
+  reports: 0x8b0000,
+  ombudsman: 0x8b0000,
+  appeals: 0x8b0000,
+  punishments: 0x8b0000,
+  boardroom: 0x8b0000,
+  announcements: 0x2e86c1,
+  changelog: 0x2e86c1,
+  polls: 0x2e86c1,
+  help: 0x2e86c1,
+  tickets: 0x2e86c1,
+  bugs: 0x2e86c1,
+  suggestions: 0x2e86c1,
+  general: 0x2e86c1,
+  'rp-general': 0x2e86c1,
+  'rp-pause': 0x2e86c1,
+  actions: 0x2e86c1,
+  vagas: 0x2e86c1,
+  status: 0x2ecc71,
+  hierarquia: 0x1f3a5f,
+  'staff-chat': 0x1f3a5f,
+  'staff-notices': 0x1f3a5f,
+  bateponto: 0x1f3a5f,
+  ausencias: 0x1f3a5f,
+  'automod-logs': 0x4f545c,
+  'ticket-logs': 0x4f545c,
+  spoilers: 0x6c3483,
+};
+
 function stylize(text) {
   return [...String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '')]
     .map((char) => {
@@ -50,7 +96,7 @@ function buildWelcome(ctx) {
   return withIcon(
     new EmbedBuilder()
       .setColor(0x5865f2)
-      .setTitle(`Bem-vindo ao ${SERVIDOR}`)
+      .setTitle('Bem-vindo ao Servidor')
       .setDescription(
         'Este é o servidor oficial da comunidade e do suporte. O roleplay acontece no Roblox; aqui ficam os comunicados, os canais de conversa e o atendimento.',
       )
@@ -133,7 +179,7 @@ function buildAbout(ctx) {
   return withIcon(
     new EmbedBuilder()
       .setColor(0x5865f2)
-      .setTitle(SERVIDOR)
+      .setTitle('Sobre o Servidor')
       .setDescription(
         'Servidor de roleplay de temática carioca no Roblox. Aqui ficam a comunidade, os comunicados e o suporte. Facções e organizações operam em servidores próprios.',
       )
@@ -572,31 +618,38 @@ function buildBoardroom() {
 }
 
 function buildJoinWelcome(member, ctx) {
+  const name = guildNameOf({ guild: member.guild });
+  const icon = member.guild?.iconURL?.({ size: 256 }) ?? null;
+
   const embed = new EmbedBuilder()
-    .setColor(0xd4af37)
-    .setTitle(stylize('Bem-vindo ao Império!'))
+    .setColor(PANEL_COLORS.welcome)
+    .setTitle(stylize('Bem-vindo!'))
     .setDescription(
-      `<@${member.id}> acabou de chegar. O roleplay acontece no Roblox; aqui ficam a comunidade, os comunicados e o suporte.`,
+      `<@${member.id}> acabou de chegar.\n\n` +
+        `Aqui ficam a comunidade, os comunicados e o suporte. O roleplay acontece no Roblox.\n\n${DIVIDER}`,
     )
     .addFields(
       {
-        name: '✦ Comece por aqui',
+        name: '▸ Comece por aqui',
         value:
           `1. Leia ${channelRef(ctx, 'regras', '#regras')} e as regras de roleplay.\n` +
           `2. Escolha seus cargos de notificação em ${channelRef(ctx, 'cargos', '#cargos')}.\n` +
           `3. Acompanhe ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`,
       },
       {
-        name: '✦ Precisa de ajuda?',
+        name: '▸ Precisa de ajuda?',
         value: `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.`,
       },
     )
     .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
-    .setFooter({ text: `${SERVIDOR} ✦ membro nº ${member.guild?.memberCount ?? '?'}` });
+    .setFooter({ text: `⊹ ᴍᴇᴍʙʀᴏ nº ${member.guild?.memberCount ?? '?'}` });
 
-  const icon = member.guild?.iconURL?.({ size: 256 }) ?? null;
-  if (icon) embed.setAuthor({ name: SERVIDOR, iconURL: icon });
-  else embed.setAuthor({ name: SERVIDOR });
+  if (icon) {
+    embed.setAuthor({ name, iconURL: icon });
+    embed.setFooter({ text: `⊹ ᴍᴇᴍʙʀᴏ nº ${member.guild?.memberCount ?? '?'}`, iconURL: icon });
+  } else {
+    embed.setAuthor({ name });
+  }
 
   return embed;
 }
@@ -691,14 +744,26 @@ function buildMessage(key, ctx, options = {}) {
   const embed = builder(ctx);
   if (!options.plain) {
     if (embed.data.title) embed.setTitle(stylize(embed.data.title));
-    if (embed.data.description) embed.setDescription(`${embed.data.description}\n${DIVIDER}`);
-    embed.setFooter({ text: `${SERVIDOR} ⊹ ᴘᴀɪɴᴇʟ ᴠ${PANEL_VERSION}` });
+    if (embed.data.description) embed.setDescription(`${embed.data.description}\n\n${DIVIDER}`);
+    if (PANEL_COLORS[key] !== undefined) embed.setColor(PANEL_COLORS[key]);
+    if (embed.data.fields?.length) {
+      embed.setFields(
+        ...embed.data.fields.map((field) => ({
+          ...field,
+          name: field.name.startsWith('▸') ? field.name : `▸ ${field.name}`,
+        })),
+      );
+    }
+
+    const name = guildNameOf(ctx);
     const icon = ctx.guild?.iconURL?.({ size: 256 }) ?? null;
     if (icon) {
-      embed.setAuthor({ name: SERVIDOR, iconURL: icon });
+      embed.setAuthor({ name, iconURL: icon });
       if (!embed.data.thumbnail) embed.setThumbnail(icon);
+      embed.setFooter({ text: `⊹ ᴘᴀɴᴇʟ ᴏꜰɪᴄɪᴀʟ・ᴠ${PANEL_VERSION}`, iconURL: icon });
     } else {
-      embed.setAuthor({ name: SERVIDOR });
+      embed.setAuthor({ name });
+      embed.setFooter({ text: `⊹ ᴘᴀɴᴇʟ ᴏꜰɪᴄɪᴀʟ・ᴠ${PANEL_VERSION}` });
     }
   }
   const payload = { embeds: [embed] };
@@ -706,4 +771,4 @@ function buildMessage(key, ctx, options = {}) {
   return payload;
 }
 
-module.exports = { buildMessage, stylize, buildJoinWelcome };
+module.exports = { buildMessage, stylize, buildJoinWelcome, LEGACY_TITLES };

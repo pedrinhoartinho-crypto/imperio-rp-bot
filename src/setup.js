@@ -20,7 +20,7 @@ const {
   LEGACY_CHANNELS,
   LEGACY_ROLES,
 } = require('./config');
-const { buildMessage } = require('./embeds');
+const { buildMessage, stylize, LEGACY_TITLES } = require('./embeds');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -285,27 +285,24 @@ async function ensureChannels(ctx) {
 
         const styledTitle = payload.embeds[0]?.data?.title;
         const footer = payload.embeds[0]?.data?.footer?.text;
+        const author = payload.embeds[0]?.data?.author?.name;
+        const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
+        const accepted = new Set([styledTitle, plainTitle].filter(Boolean));
+        for (const title of LEGACY_TITLES[key] ?? []) accepted.add(title);
+        for (const title of LEGACY_TITLES[key] ?? []) accepted.add(stylize(title));
         const mine = recent.filter((message) => message.author.id === ctx.botId);
 
         const current = mine.find((message) =>
-          message.embeds.some((embed) => embed.title === styledTitle && embed.footer?.text === footer),
+          message.embeds.some(
+            (embed) =>
+              embed.title === styledTitle && embed.footer?.text === footer && embed.author?.name === author,
+          ),
         );
         if (current) continue;
 
-        const outdated = mine.find((message) => message.embeds.some((embed) => embed.title === styledTitle));
+        const outdated = mine.find((message) => message.embeds.some((embed) => accepted.has(embed.title)));
         if (outdated) {
           await outdated.edit(payload);
-          console.log(`[ok] Painel atualizado em ${channel.name}.`);
-          await wait(300);
-          continue;
-        }
-
-        const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
-        const legacy = plainTitle
-          ? mine.find((message) => message.embeds.some((embed) => embed.title === plainTitle))
-          : null;
-        if (legacy) {
-          await legacy.edit(payload);
           console.log(`[ok] Painel atualizado em ${channel.name}.`);
           await wait(300);
           continue;
