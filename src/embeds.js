@@ -52,10 +52,9 @@ const PANEL_COLORS = {
   bugs: 0x2e86c1,
   suggestions: 0x2e86c1,
   general: 0x2e86c1,
-  'rp-general': 0x2e86c1,
-  'rp-pause': 0x2e86c1,
+  'rec-faccao': 0x8b3a3a,
+  'rec-corporacao': 0x2e86c1,
   actions: 0x2e86c1,
-  vagas: 0x2e86c1,
   status: 0x2ecc71,
   hierarquia: 0x1f3a5f,
   'staff-chat': 0x1f3a5f,
@@ -203,7 +202,7 @@ function buildRpRules(ctx) {
         '',
         head('convivência'),
         `**7. Ações.** Siga as regras de engajamento e registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-ações')}.`,
-        `**8. Fora do personagem.** Conversa OOC apenas em ${channelRef(ctx, 'pausa', '#rp-pausa')}.`,
+        `**8. Fora do personagem.** Conversa OOC apenas em ${channelRef(ctx, 'geral', '#geral')}.`,
         '**9. Hierarquia.** Ordens de líderes e sub-líderes valem dentro do RP.',
         '',
         note('Desconhecer as regras não isenta de punição.'),
@@ -273,31 +272,49 @@ function buildHelp(ctx) {
     );
 }
 
-function buildVagas() {
+function buildRecFaccao(ctx) {
   return new EmbedBuilder()
-    .setColor(0x5865f2)
-    .setTitle('Facções e Organizações')
+    .setColor(0x8b3a3a)
+    .setTitle('Recrutamento de Facção')
     .setDescription(
       [
-        '> **O poder paralelo move a cidade.** E você pode fazer parte dele.',
+        '> **Vagas abertas nas facções da cidade.** Quem procura posição encontra aqui.',
         '',
-        head('como funciona'),
-        '• Cada organização opera em servidor próprio, com hierarquia e regras internas.',
-        '• O recrutamento é feito diretamente pelas lideranças.',
-        '• Divulgue vagas e propostas neste canal.',
+        head('modelo de anúncio'),
+        '**FACÇÃO · VAGA · REQUISITOS · CONTATO**',
         '',
-        head('antes de negociar'),
-        '• Confirme a idoneidade da liderança e nunca envie dados pessoais.',
-        '• Combine atividades e funções antes de entrar.',
+        'Exemplo: **Comando Vermelho** · **Soldado e gerente** · **Ativo, headset e maior de 16** · **@liderança ou ticket de Liderança.**',
+        '',
+        note('Somente lideranças de facção publicam anúncios aqui.'),
       ].join('\n'),
     )
     .addFields(
-      { name: 'Como ingressar', value: 'Fale diretamente com o líder ou sub-líder da organização.' },
-      {
-        name: 'Cargos de representação',
-        value: 'Líderes e sub-líderes recebem o cargo correspondente no Discord, entregue pela administração após verificação.',
-      },
-      { name: 'Postura', value: 'Divulgação organizada, sem spam de mensagens ou marcações excessivas.' },
+      { name: 'Quem publica', value: 'Líderes e sub-líderes com o cargo de representação.' },
+      { name: 'Como se candidatar', value: `Fale com o contato do anúncio ou abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} (setor Liderança).` },
+      { name: 'Postura', value: 'Anúncio no modelo, sem spam ou marcação em massa.' },
+    );
+}
+
+function buildRecCorporacao(ctx) {
+  return new EmbedBuilder()
+    .setColor(0x2e86c1)
+    .setTitle('Recrutamento de Corporação')
+    .setDescription(
+      [
+        '> **Vagas abertas nas corporações da cidade.** Disciplina, farda e serviço.',
+        '',
+        head('modelo de anúncio'),
+        '**CORPORAÇÃO · VAGA · REQUISITOS · CONTATO**',
+        '',
+        'Exemplo: **Polícia Civil** · **Investigador** · **Ativo, disciplina e maior de 16** · **@liderança ou ticket de Liderança.**',
+        '',
+        note('Somente lideranças de corporação publicam anúncios aqui.'),
+      ].join('\n'),
+    )
+    .addFields(
+      { name: 'Quem publica', value: 'Líderes e sub-líderes com o cargo de representação.' },
+      { name: 'Como se candidatar', value: `Fale com o contato do anúncio ou abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} (setor Liderança).` },
+      { name: 'Postura', value: 'Anúncio no modelo, sem spam ou marcação em massa.' },
     );
 }
 
@@ -602,7 +619,7 @@ function buildGeneral(ctx) {
     )
     .addFields(
       { name: 'Conduta', value: 'Respeito sempre. Reincidência leva a silenciamento.' },
-      { name: 'Roleplay', value: `Assuntos de personagem em ${channelRef(ctx, 'rp-geral', '#rp-geral')}.` },
+      { name: 'Ações', value: `Registre as ações da cidade em ${channelRef(ctx, 'acoes', '#avisos-ações')}.` },
       { name: 'Dúvidas', value: `Use ${channelRef(ctx, 'ajuda', '#ajuda')} ou abra um ticket.` },
     );
 }
@@ -675,51 +692,6 @@ function buildPartnerships(ctx) {
     .addFields(
       { name: 'Requisitos', value: 'Projeto ativo, organizado e alinhado com roleplay.' },
       { name: 'Divulgação', value: `Parcerias oficiais são divulgadas em ${channelRef(ctx, 'parcerias', '#parcerias')}.` },
-    );
-}
-
-function buildRpGeneral(ctx) {
-  return new EmbedBuilder()
-    .setColor(0x8b3a3a)
-    .setTitle('Roleplay Geral')
-    .setDescription(
-      [
-        '> **A cidade vive aqui.** Roleplay por texto para todos os personagens.',
-        '',
-        head('antes de jogar'),
-        `**1.** Leia ${channelRef(ctx, 'rp-regras', '#regras-roleplay')} e ${channelRef(ctx, 'regras', '#regras')}.`,
-        '**2.** Mantenha a interpretação do começo ao fim.',
-        `**3.** Registre ações relevantes em ${channelRef(ctx, 'acoes', '#avisos-ações')}.`,
-        '',
-        note('Quebrar o personagem sem motivo é falta de RP.'),
-      ].join('\n'),
-    )
-    .addFields(
-      { name: 'Regras de RP', value: `Sem RDM/VDM, sem metagaming ou powergaming. Detalhes em ${channelRef(ctx, 'rp-regras', '#regras-roleplay')}.` },
-      { name: 'Fora do personagem', value: `Conversa OOC apenas em ${channelRef(ctx, 'pausa', '#rp-pausa')}.` },
-    );
-}
-
-function buildRpPause(ctx) {
-  return new EmbedBuilder()
-    .setColor(0x7f8c8d)
-    .setTitle('Pausa (OOC)')
-    .setDescription(
-      [
-        '> **Pausa para o café.** Conversa fora do personagem, sem quebrar o clima do roleplay.',
-        '',
-        head('permitido'),
-        '• Conversar, combinar e descontrair.',
-        '• Tirar dúvidas rápidas de RP.',
-        '',
-        head('proibido'),
-        '• Vazar informações do roleplay (metagaming).',
-        '• Levar a treta daqui para dentro do jogo.',
-      ].join('\n'),
-    )
-    .addFields(
-      { name: 'Roleplay', value: `As cenas acontecem em ${channelRef(ctx, 'rp-geral', '#rp-geral')}.` },
-      { name: 'Clima', value: 'O que acontece na pausa não vale no RP — aqui é terra de ninguém.' },
     );
 }
 
@@ -1061,7 +1033,8 @@ const BUILDERS = {
   'rp-rules': buildRpRules,
   about: buildAbout,
   help: buildHelp,
-  vagas: buildVagas,
+  'rec-faccao': buildRecFaccao,
+  'rec-corporacao': buildRecCorporacao,
   cargos: buildCargos,
   tickets: buildTickets,
   hierarquia: buildHierarquia,
@@ -1077,8 +1050,6 @@ const BUILDERS = {
   media: buildMedia,
   suggestions: buildSuggestions,
   partnerships: buildPartnerships,
-  'rp-general': buildRpGeneral,
-  'rp-pause': buildRpPause,
   actions: buildActions,
   reports: buildReports,
   ombudsman: buildOmbudsman,

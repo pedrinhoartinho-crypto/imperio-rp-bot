@@ -31,6 +31,7 @@ const STAFF_KEYS = [
   'estagiario',
 ];
 const STAFF_SENIOR_KEYS = ['dono', 'dir_geral', 'dir_operacoes', 'dir_tecnologia', 'dir_marketing', 'dir_design'];
+const LEADER_KEYS = ['lider_faccao', 'sub_lider_faccao', 'lider_org', 'sub_lider_org'];
 const TICKET_JUNIOR_KEYS = ['estagiario'];
 
 const TICKETS = [
@@ -411,7 +412,7 @@ const CATEGORIES = [
     ref: 'cat-comunidade',
     preset: 'public',
     channels: [
-      { name: 'geral', message: 'general', topic: 'Conversa geral' },
+      { name: 'geral', ref: 'geral', message: 'general', topic: 'Conversa geral' },
       { name: 'mídia', message: 'media', topic: 'Clipes, prints e criação de conteúdo' },
       { name: 'sugestões', ref: 'sugestoes', message: 'suggestions', topic: 'Sugestões para o servidor (votação por reação)' },
       { name: 'parcerias', ref: 'parcerias', message: 'partnerships', topic: 'Contato e divulgação de parcerias' },
@@ -419,14 +420,13 @@ const CATEGORIES = [
     ],
   },
   {
-    name: 'Roleplay',
-    ref: 'cat-roleplay',
+    name: 'Facções e Corporações',
+    ref: 'cat-faccoes',
     preset: 'public',
     channels: [
-      { name: 'rp-geral', message: 'rp-general', topic: 'Roleplay livre' },
-      { name: 'rp-pausa', ref: 'pausa', message: 'rp-pause', topic: 'Conversa fora do personagem (OOC)' },
+      { name: 'recrutamento-facção', ref: 'rec-faccao', message: 'rec-faccao', preset: 'leaders', topic: 'Vagas e recrutamento das facções' },
+      { name: 'recrutamento-corporação', ref: 'rec-corporacao', message: 'rec-corporacao', preset: 'leaders', topic: 'Vagas e recrutamento das corporações' },
       { name: 'avisos-ações', ref: 'acoes', message: 'actions', topic: 'Registro de ações relevantes da cidade' },
-      { name: 'vagas', message: 'vagas', topic: 'Vagas e contato com facções e organizações' },
     ],
   },
   {
@@ -505,7 +505,7 @@ const LEGACY_CATEGORIES = {
   'Avisos': ['📢・ᴀᴠɪꜱᴏꜱ', '📢・avisos'],
   'Regras': ['📋・ʀᴇɢʀᴀꜱ', '📋・regras'],
   'Comunidade': ['💬・ᴄᴏᴍᴜɴɪᴅᴀᴅᴇ', '💬・comunidade', 'Comunidade'],
-  'Roleplay': ['🎭・ʀᴏʟᴇᴘʟᴀʏ', '🎭・roleplay', 'Roleplay'],
+  'Facções e Corporações': ['🎭・ʀᴏʟᴇᴘʟᴀʏ', '🎭・roleplay', 'Roleplay'],
   'Suporte': ['🆘・ꜱᴜᴘᴏʀᴛᴇ', '🆘・suporte', 'Suporte'],
   'Candidaturas': ['📝・ᴄᴀɴᴅɪᴅᴀᴛᴜʀᴀꜱ', '📝・candidaturas', 'Candidaturas'],
   'Equipe': ['🛡️・ᴇǫᴜɪᴘᴇ', '🛡️・equipe', 'Equipe'],
@@ -528,10 +528,7 @@ const LEGACY_CHANNELS = {
   'sugestões': ['💡・ꜱᴜɢᴇꜱᴛᴏᴇꜱ', '💡・sugestoes', 'sugestoes'],
   'parcerias': ['🤝・ᴘᴀʀᴄᴇʀɪᴀꜱ', '🤝・parcerias', 'parcerias'],
   'cargos': ['🏅・ᴄᴀʀɢᴏꜱ', '🏅・cargos', 'cargos'],
-  'rp-geral': ['🌆・ʀᴘ-ɢᴇʀᴀʟ', '🌆・rp-geral', 'rp-geral'],
-  'rp-pausa': ['☕・ʀᴘ-ᴘᴀᴜꜱᴀ', '☕・rp-pausa', 'rp-pausa'],
   'avisos-ações': ['⚔️・ᴀᴠɪꜱᴏꜱ-ᴀᴄᴏᴇꜱ', '⚔️・avisos-acoes', 'avisos-acoes'],
-  'vagas': ['💼・ᴠᴀɢᴀꜱ', '💼・vagas', 'vagas'],
   'ajuda': ['❓・ᴀᴊᴜᴅᴀ', '❓・ajuda', 'ajuda'],
   'abrir-ticket': ['🎟️・ᴀʙʀɪʀ-ᴛɪᴄᴋᴇᴛ', '🎟️・abrir-ticket', 'abrir-ticket'],
   'denúncias': ['🚨・ᴅᴇɴᴜɴᴄɪᴀꜱ', '🚨・denuncias', 'denuncias'],
@@ -571,6 +568,7 @@ module.exports = {
   CATEGORIES,
   STAFF_KEYS,
   STAFF_SENIOR_KEYS,
+  LEADER_KEYS,
   TICKET_JUNIOR_KEYS,
   CHANNEL_REFS,
   CATEGORY_REFS,

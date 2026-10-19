@@ -2,7 +2,7 @@
 
 Bot em `discord.js` que entrega o servidor pronto no padrão dos grandes RPs: estrutura completa, cargos com hierarquia e permissões, AutoMod, tickets por setor com transcript, bate-ponto persistente, registro de ausências, comandos slash e menus de cargo. Tudo idempotente — rodar de novo nunca duplica.
 
-Facções e organizações não têm canais aqui; elas operam em servidores próprios. Este servidor mantém apenas os cargos de representação (Líder/Sub-Líder) para identificar lideranças.
+Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Sub-Líder) para identificar lideranças.
 
 ## Estrutura criada
 
@@ -47,7 +47,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Avisos** (só a equipe escreve) — anuncios-gerais, atualizações (anúncio), spoilers, enquetes
 - **Regras** (só a equipe escreve) — regras, regras-roleplay
 - **Comunidade** — geral, mídia, sugestões, parcerias, cargos
-- **Roleplay** — rp-geral, rp-pausa, avisos-ações, vagas
+- **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
 - **Equipe** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausências, registro-punições, logs-automod, logs-tickets, diretoria (só direção), sala-staff

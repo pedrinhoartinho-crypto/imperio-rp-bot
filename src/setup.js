@@ -17,6 +17,7 @@ const {
   AUTO_ROLE_KEY,
   STAFF_KEYS,
   STAFF_SENIOR_KEYS,
+  LEADER_KEYS,
   LEGACY_CATEGORIES,
   LEGACY_CHANNELS,
   LEGACY_ROLES,
@@ -38,6 +39,7 @@ function buildOverwrites(preset, ctx) {
   const staff = STAFF_KEYS.map(roleId).filter(Boolean);
   const senior = STAFF_SENIOR_KEYS.map(roleId).filter(Boolean);
   const junior = STAFF_KEYS.filter((key) => !STAFF_SENIOR_KEYS.includes(key)).map(roleId).filter(Boolean);
+  const leaders = LEADER_KEYS.map(roleId).filter(Boolean);
   const muted = roleId('mutado');
 
   const allowAll = [
@@ -70,6 +72,11 @@ function buildOverwrites(preset, ctx) {
     case 'readonly':
       push(everyone, [P.ViewChannel, P.ReadMessageHistory, P.AddReactions], denyWrite);
       staff.forEach((id) => push(id, allowAll));
+      break;
+    case 'leaders':
+      push(everyone, [P.ViewChannel, P.ReadMessageHistory, P.AddReactions], denyWrite);
+      staff.forEach((id) => push(id, allowAll));
+      leaders.forEach((id) => push(id, allowAll));
       break;
     case 'staff':
       push(everyone, [], [P.ViewChannel]);
