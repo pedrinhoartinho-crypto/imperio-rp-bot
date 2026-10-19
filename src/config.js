@@ -335,7 +335,7 @@ const ROLES = [
   },
   {
     key: 'membro',
-    name: 'Membro',
+    name: 'Cidadão',
     color: '#808B96',
     hoist: false,
     mentionable: false,
@@ -558,6 +558,10 @@ const LEGACY_CHANNELS = {
   '💤・ᴀꜰᴋ': ['💤・afk', 'AFK'],
 };
 
+const LEGACY_ROLES = {
+  'Cidadão': ['Membro'],
+};
+
 module.exports = {
   SERVIDOR,
   LINKS,
@@ -574,4 +578,5 @@ module.exports = {
   channelName,
   LEGACY_CATEGORIES,
   LEGACY_CHANNELS,
+  LEGACY_ROLES,
 };

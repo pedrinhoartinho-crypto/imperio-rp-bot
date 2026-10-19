@@ -13,10 +13,12 @@ const {
   SERVIDOR,
   ROLES,
   CATEGORIES,
+  AUTO_ROLE_KEY,
   STAFF_KEYS,
   STAFF_SENIOR_KEYS,
   LEGACY_CATEGORIES,
   LEGACY_CHANNELS,
+  LEGACY_ROLES,
 } = require('./config');
 const { buildMessage } = require('./embeds');
 
@@ -95,6 +97,16 @@ async function ensureRoles(ctx) {
   for (const cfg of ROLES) {
     let role = guild.roles.cache.find((r) => r.name === cfg.name);
 
+    if (!role && LEGACY_ROLES[cfg.name]) {
+      for (const legacyName of LEGACY_ROLES[cfg.name]) {
+        const legacy = guild.roles.cache.find((r) => r.name.toLowerCase() === legacyName.toLowerCase());
+        if (!legacy) continue;
+        role = await legacy.setName(cfg.name).catch(() => legacy);
+        console.log(`[ok] Cargo renomeado: ${legacyName} → ${cfg.name}`);
+        break;
+      }
+    }
+
     if (role) {
       reused += 1;
     } else {
@@ -131,6 +143,30 @@ async function ensureRoles(ctx) {
   }
 
   return { created, reused };
+}
+
+async function applyAutorole(ctx) {
+  const cfg = ROLES.find((role) => role.key === AUTO_ROLE_KEY);
+  const role = cfg ? ctx.roles[cfg.key] : null;
+  if (!role) return;
+
+  let members;
+  try {
+    members = await ctx.guild.members.fetch();
+  } catch (error) {
+    console.warn(`[aviso] Autorole em massa indisponível (ative a Server Members Intent): ${error.message}`);
+    return;
+  }
+
+  let applied = 0;
+  for (const member of members.values()) {
+    if (member.user.bot || member.roles.cache.has(role.id)) continue;
+    await member.roles.add(role, 'Autorole: aplicação em massa').catch(() => {});
+    applied += 1;
+    await wait(200);
+  }
+
+  if (applied) console.log(`[ok] Autorole ${role.name} aplicado a ${applied} membro(s) existente(s).`);
 }
 
 async function ensureChannels(ctx) {
@@ -390,6 +426,7 @@ async function setupGuild(client, guild) {
   console.log(`[info] Preparando "${SERVIDOR}" em: ${guild.name}`);
 
   const roles = await ensureRoles(ctx);
+  await applyAutorole(ctx);
   const channels = await ensureChannels(ctx);
   await applyGuildSettings(ctx);
   await applyAutoMod(ctx);

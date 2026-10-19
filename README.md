@@ -35,7 +35,7 @@ Facções e organizações não têm canais aqui; elas operam em servidores pró
 | Parceiro | Servidores e projetos parceiros |
 | Líder / Sub-Líder de Facção | Representação de liderança de facção |
 | Líder / Sub-Líder de Organização | Representação de liderança de organização |
-| Membro | Cargo base da comunidade |
+| Cidadão | Cargo base da comunidade (autorole automático) |
 | Ping Anúncios / Ping Ações | Notificações (obtidos por botão) |
 | Advertido / Mutado | Punições |
 
@@ -82,7 +82,7 @@ Todos restritos à equipe.
 Toda mensagem em #sugestoes recebe automaticamente os votos 👍 e 👎 do bot.
 
 ### Boas-vindas automáticas
-Quem entra no servidor recebe o cargo Membro automaticamente (autorole) e uma mensagem de boas-vindas no canal #bem-vindo, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Requer a Server Members Intent ligada no portal do bot.
+Quem entra no servidor recebe o cargo Cidadão automaticamente (autorole) e uma mensagem de boas-vindas no canal #bem-vindo, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Quem já estava no servidor também recebe o cargo na próxima inicialização. Requer a Server Members Intent ligada no portal do bot.
 
 ### Painel em todos os canais
 Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), com autor e ícone do servidor, thumbnail, rodapé de versão e divisórias decorativas. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
@@ -114,7 +114,7 @@ Requisitos: Node.js 18+ e um servidor Discord (recomendado começar vazio).
 
 1. Acesse <https://discord.com/developers/applications> e clique em **New Application**;
 2. Vá em **Bot** → **Reset Token** e copie o token;
-3. Para o **autorole** (cargo automático de Membro ao entrar): em **Bot** → **Privileged Gateway Intents**, ligue **Server Members Intent** → **Save**. Sem isso o bot funciona normalmente, só não aplica o autorole (ele avisa no console).
+3. Para o **autorole** (cargo automático de Cidadão ao entrar): em **Bot** → **Privileged Gateway Intents**, ligue **Server Members Intent** → **Save**. Sem isso o bot funciona normalmente, só não aplica o autorole nem as boas-vindas (ele avisa no console).
 
 ### 2. Convidar o bot
 
@@ -213,7 +213,7 @@ Crie um repositório (pode ser privado) e envie o projeto. `node_modules`, `.env
 - **Dados:** o bate-ponto fica em `data/bateponto.json` (fora do controle de versão).
 - **Reexecução:** rodar `npm run setup` de novo completa o que faltar sem duplicar e republica painéis de canal que estiverem faltando.
 - **Atualização de versões antigas:** canais e categorias de versões anteriores (sem emoji ou com nomes antigos) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada.
-- **Autorole e boas-vindas:** todo membro que entra recebe o cargo Membro e uma mensagem de boas-vindas em #bem-vindo (requer Server Members Intent ligada no portal, veja a Instalação).
+- **Autorole e boas-vindas:** todo membro que entra recebe o cargo Cidadão e uma mensagem de boas-vindas em #bem-vindo (requer Server Members Intent ligada no portal, veja a Instalação).
 
 ## Personalização rápida
 
