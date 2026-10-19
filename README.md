@@ -41,16 +41,18 @@ Facções e organizações não têm canais aqui; elas operam em servidores pró
 
 ### Canais
 
-- **📜・informações** (só a equipe escreve) — #bem-vindo, #sobre-o-servidor, #status-servidor
-- **📢・avisos** (só a equipe escreve) — #anuncios-gerais, #atualizacoes, #spoilers, #enquetes
-- **📋・regras** (só a equipe escreve) — #regras, #regras-roleplay
-- **💬・comunidade** — #geral, #midia, #sugestoes, #parcerias, #cargos
-- **🎭・roleplay** — #rp-geral, #rp-pausa, #avisos-acoes, #vagas
-- **🆘・suporte** — #ajuda, #abrir-ticket, #denuncias (equipe), #corregedoria (direção), #recursos (equipe), #reportar-bugs, #avaliar-staff
-- **📝・candidaturas** — #seja-staff (frentes de trabalho), #solicitar-tag (tags de criador)
-- **🛡️・equipe** — #chat-staff, #avisos-staff, #hierarquia-staff, #bate-ponto, #ausencias, #registro-punicoes, #logs-automod, #logs-tickets, #diretoria (só direção), #sala-staff
-- **🎫・tickets** — categoria privada onde os atendimentos são criados automaticamente
-- **🔊・canais-de-voz** — geral, roleplay-1, roleplay-2, eventos (palco), afk
+Todos os canais e categorias usam fonte estilizada (small caps) no padrão dos RPs:
+
+- **📜・ɪɴꜰᴏʀᴍᴀᴄᴏᴇꜱ** (só a equipe escreve) — bem-vindo, sobre-o-servidor, status-servidor
+- **📢・ᴀᴠɪꜱᴏꜱ** (só a equipe escreve) — anuncios-gerais, atualizacoes, spoilers, enquetes
+- **📋・ʀᴇɢʀᴀꜱ** (só a equipe escreve) — regras, regras-roleplay
+- **💬・ᴄᴏᴍᴜɴɪᴅᴀᴅᴇ** — geral, midia, sugestoes, parcerias, cargos
+- **🎭・ʀᴏʟᴇᴘʟᴀʏ** — rp-geral, rp-pausa, avisos-acoes, vagas
+- **🆘・ꜱᴜᴘᴏʀᴛᴇ** — ajuda, abrir-ticket, denuncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
+- **📝・ᴄᴀɴᴅɪᴅᴀᴛᴜʀᴀꜱ** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
+- **🛡️・ᴇǫᴜɪᴘᴇ** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausencias, registro-punicoes, logs-automod, logs-tickets, diretoria (só direção), sala-staff
+- **🎫・ᴛɪᴄᴋᴇᴛꜱ** — categoria privada onde os atendimentos são criados automaticamente
+- **🔊・ᴄᴀɴᴀɪꜱ-ᴅᴇ-ᴠᴏᴢ** — geral, roleplay-1, roleplay-2, eventos (palco), afk
 
 ## Recursos em operação
 
@@ -79,8 +81,11 @@ Todos restritos à equipe.
 ### Sugestões com votação automática
 Toda mensagem em #sugestoes recebe automaticamente os votos 👍 e 👎 do bot.
 
+### Boas-vindas automáticas
+Quem entra no servidor recebe o cargo Membro automaticamente (autorole) e uma mensagem de boas-vindas no canal #bem-vindo, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Requer a Server Members Intent ligada no portal do bot.
+
 ### Painel em todos os canais
-Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados). Todos os canais e categorias têm emoji no nome, e os títulos dos painéis usam fonte estilizada com divisórias decorativas. Ao reexecutar o setup, painéis que estiverem faltando são publicados de novo, sem duplicar os existentes.
+Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), com autor e ícone do servidor, thumbnail, rodapé de versão e divisórias decorativas. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
 
 ### AutoMod
 - Anti-spam
@@ -207,8 +212,8 @@ Crie um repositório (pode ser privado) e envie o projeto. `node_modules`, `.env
 - **Palco:** o canal Eventos só é criado se o servidor tiver o recurso Comunidade ativado.
 - **Dados:** o bate-ponto fica em `data/bateponto.json` (fora do controle de versão).
 - **Reexecução:** rodar `npm run setup` de novo completa o que faltar sem duplicar e republica painéis de canal que estiverem faltando.
-- **Atualização de versões antigas:** canais e categorias criados por versões anteriores (nomes sem emoji) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada.
-- **Autorole:** todo membro que entra recebe o cargo Membro automaticamente (requer Server Members Intent ligada no portal, veja a Instalação).
+- **Atualização de versões antigas:** canais e categorias de versões anteriores (sem emoji ou com nomes antigos) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada.
+- **Autorole e boas-vindas:** todo membro que entra recebe o cargo Membro e uma mensagem de boas-vindas em #bem-vindo (requer Server Members Intent ligada no portal, veja a Instalação).
 
 ## Personalização rápida
 

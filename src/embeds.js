@@ -5,6 +5,7 @@ const {
   ButtonStyle,
 } = require('discord.js');
 const { SERVIDOR, LINKS, MENU_ROLE_KEYS, TICKETS, ROLES } = require('./config');
+const { version: PANEL_VERSION } = require('../package.json');
 
 const TICKET_STYLES = {
   suporte: ButtonStyle.Primary,
@@ -28,7 +29,7 @@ function stylize(text) {
 }
 
 function channelRef(ctx, ref, fallback) {
-  return ctx.channels[ref] ? `<#${ctx.channels[ref]}>` : fallback;
+  return ctx.channels?.[ref] ? `<#${ctx.channels[ref]}>` : fallback;
 }
 
 function linksBlock() {
@@ -199,9 +200,10 @@ function buildTickets() {
         'Escolha o setor correspondente ao seu caso e um canal privado será aberto com a equipe.',
         '',
         ...TICKETS.map((ticket) => `**${ticket.label}** — ${ticket.summary}`),
+        '',
+        'Um atendimento por vez. Tickets parados podem ser encerrados pela equipe.',
       ].join('\n'),
-    )
-    .setFooter({ text: 'Um atendimento por vez. Tickets parados podem ser encerrados pela equipe.' });
+    );
 }
 
 function buildHierarquia(ctx) {
@@ -569,6 +571,36 @@ function buildBoardroom() {
     );
 }
 
+function buildJoinWelcome(member, ctx) {
+  const embed = new EmbedBuilder()
+    .setColor(0xd4af37)
+    .setTitle(stylize('Bem-vindo ao Império!'))
+    .setDescription(
+      `<@${member.id}> acabou de chegar. O roleplay acontece no Roblox; aqui ficam a comunidade, os comunicados e o suporte.`,
+    )
+    .addFields(
+      {
+        name: '✦ Comece por aqui',
+        value:
+          `1. Leia ${channelRef(ctx, 'regras', '#regras')} e as regras de roleplay.\n` +
+          `2. Escolha seus cargos de notificação em ${channelRef(ctx, 'cargos', '#cargos')}.\n` +
+          `3. Acompanhe ${channelRef(ctx, 'anuncios', '#anuncios-gerais')}.`,
+      },
+      {
+        name: '✦ Precisa de ajuda?',
+        value: `Abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')}.`,
+      },
+    )
+    .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
+    .setFooter({ text: `${SERVIDOR} ✦ membro nº ${member.guild?.memberCount ?? '?'}` });
+
+  const icon = member.guild?.iconURL?.({ size: 256 }) ?? null;
+  if (icon) embed.setAuthor({ name: SERVIDOR, iconURL: icon });
+  else embed.setAuthor({ name: SERVIDOR });
+
+  return embed;
+}
+
 function buildRoleMenu() {
   const row = new ActionRowBuilder();
   for (const key of MENU_ROLE_KEYS) {
@@ -660,10 +692,18 @@ function buildMessage(key, ctx, options = {}) {
   if (!options.plain) {
     if (embed.data.title) embed.setTitle(stylize(embed.data.title));
     if (embed.data.description) embed.setDescription(`${embed.data.description}\n${DIVIDER}`);
+    embed.setFooter({ text: `${SERVIDOR} ⊹ ᴘᴀɪɴᴇʟ ᴠ${PANEL_VERSION}` });
+    const icon = ctx.guild?.iconURL?.({ size: 256 }) ?? null;
+    if (icon) {
+      embed.setAuthor({ name: SERVIDOR, iconURL: icon });
+      if (!embed.data.thumbnail) embed.setThumbnail(icon);
+    } else {
+      embed.setAuthor({ name: SERVIDOR });
+    }
   }
   const payload = { embeds: [embed] };
   if (COMPONENTS[key]) payload.components = COMPONENTS[key]();
   return payload;
 }
 
-module.exports = { buildMessage, stylize };
+module.exports = { buildMessage, stylize, buildJoinWelcome };

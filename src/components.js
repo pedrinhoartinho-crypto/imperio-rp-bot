@@ -13,7 +13,7 @@ const {
   TextInputStyle,
 } = require('discord.js');
 const { ROLES, STAFF_KEYS, TICKET_JUNIOR_KEYS, TICKETS, CATEGORY_REFS, channelName, AUTO_ROLE_KEY } = require('./config');
-const { stylize } = require('./embeds');
+const { stylize, buildJoinWelcome } = require('./embeds');
 const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -352,11 +352,23 @@ async function handleAusenciaSubmit(interaction) {
 
 async function handleGuildMemberAdd(member) {
   if (!member?.guild || member.user?.bot) return;
+
   const cfg = ROLES.find((role) => role.key === AUTO_ROLE_KEY);
-  if (!cfg) return;
-  const role = member.guild.roles.cache.find((r) => r.name === cfg.name);
-  if (!role) return;
-  await member.roles.add(role, 'Autorole: entrada no servidor').catch(() => {});
+  if (cfg) {
+    const role = member.guild.roles.cache.find((r) => r.name === cfg.name);
+    if (role) await member.roles.add(role, 'Autorole: entrada no servidor').catch(() => {});
+  }
+
+  const welcomeChannel = member.guild.channels.cache.find((c) => c.name === channelName('bem-vindo'));
+  if (!welcomeChannel) return;
+
+  const ctx = { guild: member.guild, channels: {} };
+  for (const ref of ['regras', 'cargos', 'tickets', 'anuncios']) {
+    const channel = member.guild.channels.cache.find((c) => c.name === channelName(ref));
+    if (channel) ctx.channels[ref] = channel.id;
+  }
+
+  await welcomeChannel.send({ content: `<@${member.id}>`, embeds: [buildJoinWelcome(member, ctx)] }).catch(() => {});
 }
 
 async function handleMessage(message) {

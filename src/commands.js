@@ -152,7 +152,7 @@ async function handleAdvertir(interaction) {
   if (registro) await registro.send({ embeds: [embed] }).catch(() => {});
 
   await alvo
-    .send(`Você recebeu uma advertência no ${SERVIDOR}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #abrir-ticket.`)
+    .send(`Você recebeu uma advertência no ${SERVIDOR}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #${channelName('tickets')}.`)
     .catch(() => {});
 
   await replyEphemeral(interaction, `Advertência aplicada a ${alvo}.`);

@@ -145,13 +145,15 @@ async function ensureChannels(ctx) {
     );
 
     if (!category && LEGACY_CATEGORIES[catCfg.name]) {
-      const legacyName = LEGACY_CATEGORIES[catCfg.name];
-      const legacy = guild.channels.cache.find(
-        (c) => c.type === ChannelType.GuildCategory && c.name === legacyName,
-      );
-      if (legacy) {
+      for (const legacyName of LEGACY_CATEGORIES[catCfg.name]) {
+        const legacy = guild.channels.cache.find(
+          (c) =>
+            c.type === ChannelType.GuildCategory && c.name.toLowerCase() === legacyName.toLowerCase(),
+        );
+        if (!legacy) continue;
         category = await legacy.setName(catCfg.name).catch(() => legacy);
         console.log(`[ok] Categoria renomeada: ${legacyName} → ${catCfg.name}`);
+        break;
       }
     }
 
@@ -177,11 +179,16 @@ async function ensureChannels(ctx) {
       );
 
       if (!channel && LEGACY_CHANNELS[chCfg.name]) {
-        const legacyName = LEGACY_CHANNELS[chCfg.name];
-        const legacy = guild.channels.cache.find(
-          (c) => c.name === legacyName && c.type !== ChannelType.GuildCategory,
-        );
-        if (legacy) {
+        const typeMatches = (c) =>
+          type === ChannelType.GuildText
+            ? c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement
+            : c.type === type;
+
+        for (const legacyName of LEGACY_CHANNELS[chCfg.name]) {
+          const legacy = guild.channels.cache.find(
+            (c) => c.name.toLowerCase() === legacyName.toLowerCase() && typeMatches(c),
+          );
+          if (!legacy) continue;
           try {
             await legacy.setParent(category.id, { lockPermissions: false });
             channel = await legacy.setName(chCfg.name);
@@ -190,6 +197,7 @@ async function ensureChannels(ctx) {
             channel = legacy;
           }
           console.log(`[ok] Canal renomeado: ${legacyName} → ${chCfg.name}`);
+          break;
         }
       }
 
@@ -240,18 +248,25 @@ async function ensureChannels(ctx) {
         if (!recent) continue;
 
         const styledTitle = payload.embeds[0]?.data?.title;
-        const current = recent.find(
-          (message) =>
-            message.author.id === ctx.botId && message.embeds.some((embed) => embed.title === styledTitle),
+        const footer = payload.embeds[0]?.data?.footer?.text;
+        const mine = recent.filter((message) => message.author.id === ctx.botId);
+
+        const current = mine.find((message) =>
+          message.embeds.some((embed) => embed.title === styledTitle && embed.footer?.text === footer),
         );
         if (current) continue;
 
+        const outdated = mine.find((message) => message.embeds.some((embed) => embed.title === styledTitle));
+        if (outdated) {
+          await outdated.edit(payload);
+          console.log(`[ok] Painel atualizado em ${channel.name}.`);
+          await wait(300);
+          continue;
+        }
+
         const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
         const legacy = plainTitle
-          ? recent.find(
-              (message) =>
-                message.author.id === ctx.botId && message.embeds.some((embed) => embed.title === plainTitle),
-            )
+          ? mine.find((message) => message.embeds.some((embed) => embed.title === plainTitle))
           : null;
         if (legacy) {
           await legacy.edit(payload);
