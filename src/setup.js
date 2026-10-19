@@ -128,18 +128,26 @@ async function ensureRoles(ctx) {
   }
 
   const me = await guild.members.fetchMe();
-  let position = me.roles.highest.position - 1;
+  const botRole = me.roles.highest;
+  const ordered = [botRole, ...ROLES.map((cfg) => ctx.roles[cfg.key])].filter(Boolean);
+  const known = new Set(ordered.map((role) => role.id));
+  const extras = guild.roles.cache.filter((role) => role.id !== guild.id && !known.has(role.id));
+  const all = [...ordered, ...extras.values()];
 
-  for (const cfg of ROLES) {
-    const role = ctx.roles[cfg.key];
-    const target = Math.max(position, 1);
+  let top = guild.roles.cache.size - 1;
+  const positions = [];
+  for (const role of all) {
+    if (role.position !== top) positions.push({ role, position: top });
+    top -= 1;
+  }
+
+  if (positions.length) {
     try {
-      if (role.position !== target) await role.setPosition(target);
+      await guild.roles.setPositions(positions);
+      console.log(`[ok] Hierarquia de cargos aplicada (${positions.length} ajuste(s)).`);
     } catch (error) {
-      console.warn(`[aviso] Não foi possível posicionar o cargo ${role.name}: ${error.message}`);
+      console.warn(`[aviso] Não foi possível ajustar a hierarquia de cargos: ${error.message}`);
     }
-    position -= 1;
-    await wait(300);
   }
 
   return { created, reused };
