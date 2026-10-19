@@ -56,6 +56,7 @@ const PANEL_COLORS = {
   'rec-corporacao': 0x2e86c1,
   actions: 0x2e86c1,
   status: 0x2ecc71,
+  servers: 0x1f3a5f,
   hierarquia: 0x1f3a5f,
   'staff-chat': 0x1f3a5f,
   'staff-notices': 0x1f3a5f,
@@ -290,7 +291,7 @@ function buildRecFaccao(ctx) {
     )
     .addFields(
       { name: 'Quem publica', value: 'Líderes e sub-líderes com o cargo de representação.' },
-      { name: 'Como se candidatar', value: `Fale com o contato do anúncio ou abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} (setor Liderança).` },
+      { name: 'Como se candidatar', value: 'Chame no privado o contato do anúncio — a liderança envia o convite do time.' },
       { name: 'Postura', value: 'Anúncio no modelo, sem spam ou marcação em massa.' },
     );
 }
@@ -313,8 +314,31 @@ function buildRecCorporacao(ctx) {
     )
     .addFields(
       { name: 'Quem publica', value: 'Líderes e sub-líderes com o cargo de representação.' },
-      { name: 'Como se candidatar', value: `Fale com o contato do anúncio ou abra um atendimento em ${channelRef(ctx, 'tickets', '#abrir-ticket')} (setor Liderança).` },
+      { name: 'Como se candidatar', value: 'Chame no privado o contato do anúncio — a liderança envia o convite do time.' },
       { name: 'Postura', value: 'Anúncio no modelo, sem spam ou marcação em massa.' },
+    );
+}
+
+function buildServers(ctx) {
+  return new EmbedBuilder()
+    .setColor(0x1f3a5f)
+    .setTitle('Servidores Oficiais')
+    .setDescription(
+      [
+        '> **Só entra na cidade quem é oficial.** Aqui ficam os servidores cadastrados de facções e corporações.',
+        '',
+        head('como funciona'),
+        '• Apenas servidores cadastrados pela administração podem ser divulgados.',
+        '• Convites de outros servidores são bloqueados automaticamente em todo o servidor.',
+        '• A lista oficial é publicada pela administração logo abaixo.',
+        '',
+        note('Sua facção ou corporação quer um servidor oficial? Fale com a administração.'),
+      ].join('\n'),
+    )
+    .addFields(
+      { name: 'Facções cadastradas', value: 'Lista oficial mantida pela administração.' },
+      { name: 'Corporações cadastradas', value: 'Lista oficial mantida pela administração.' },
+      { name: 'Denúncias', value: `Servidor oficial fora das regras? Denuncie em ${channelRef(ctx, 'denuncias', '#denúncias')}.` },
     );
 }
 
@@ -1035,6 +1059,7 @@ const BUILDERS = {
   help: buildHelp,
   'rec-faccao': buildRecFaccao,
   'rec-corporacao': buildRecCorporacao,
+  servers: buildServers,
   cargos: buildCargos,
   tickets: buildTickets,
   hierarquia: buildHierarquia,

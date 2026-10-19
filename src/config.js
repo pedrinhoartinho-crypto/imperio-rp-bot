@@ -426,6 +426,7 @@ const CATEGORIES = [
     channels: [
       { name: 'recrutamento-facção', ref: 'rec-faccao', message: 'rec-faccao', preset: 'leaders', topic: 'Vagas e recrutamento das facções' },
       { name: 'recrutamento-corporação', ref: 'rec-corporacao', message: 'rec-corporacao', preset: 'leaders', topic: 'Vagas e recrutamento das corporações' },
+      { name: 'servidores', ref: 'servidores', message: 'servers', preset: 'readonly', topic: 'Servidores oficiais de facções e corporações' },
       { name: 'avisos-ações', ref: 'acoes', message: 'actions', topic: 'Registro de ações relevantes da cidade' },
     ],
   },
@@ -437,7 +438,7 @@ const CATEGORIES = [
       { name: 'ajuda', ref: 'ajuda', message: 'help', topic: 'Dúvidas e solicitações de suporte' },
       { name: 'abrir-ticket', ref: 'tickets', message: 'tickets', preset: 'readonly', topic: 'Atendimento privado com a equipe' },
       { name: 'denúncias', ref: 'denuncias', message: 'reports', preset: 'staff', topic: 'Denúncias com provas (visível apenas para a equipe)' },
-      { name: 'corregedoria', ref: 'corregedoria', message: 'ombudsman', preset: 'staff', topic: 'Denúncias contra membros da equipe (visível apenas para a direção)' },
+      { name: 'corregedoria', ref: 'corregedoria', message: 'ombudsman', preset: 'staff-high', topic: 'Denúncias contra membros da equipe (visível apenas para a direção)' },
       { name: 'recursos', ref: 'recursos', message: 'appeals', preset: 'staff', topic: 'Pedidos de revisão de punição (visível apenas para a equipe)' },
       { name: 'reportar-bugs', ref: 'bugs', message: 'bugs', topic: 'Reporte bugs do jogo e do servidor' },
       { name: 'avaliar-staff', message: 'staff-review', topic: 'Avalie o atendimento da equipe' },

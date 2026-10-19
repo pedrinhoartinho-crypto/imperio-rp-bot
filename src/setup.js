@@ -294,6 +294,25 @@ async function ensureChannels(ctx) {
         }
       } else {
         reused += 1;
+        if (preset !== catCfg.preset) {
+          const expected = buildOverwrites(preset, ctx);
+          const bits = (arr) => arr.reduce((acc, p) => acc | p, 0n);
+          const actual = channel.permissionOverwrites.cache;
+          const ok =
+            actual.size === expected.length &&
+            expected.every((o) => {
+              const cur = actual.get(o.id);
+              return cur && cur.allow.bitfield === bits(o.allow) && cur.deny.bitfield === bits(o.deny);
+            });
+          if (!ok) {
+            try {
+              await channel.permissionOverwrites.set(expected);
+              console.log(`[ok] Permissões ajustadas: ${chCfg.name}`);
+            } catch (error) {
+              console.warn(`[aviso] Não foi possível ajustar as permissões de ${chCfg.name}: ${error.message}`);
+            }
+          }
+        }
       }
 
       if (chCfg.ref) ctx.channels[chCfg.ref] = channel.id;
@@ -412,16 +431,10 @@ async function applyAutoMod(ctx) {
         name: 'Convites e links',
         triggerType: Trigger.Keyword,
         triggerMetadata: { regexPatterns: ['discord\\.gg/\\S+', 'discord\\.com/invite/\\S+'] },
-        exemptChannels: ctx.channels.parcerias ? [ctx.channels.parcerias] : [],
       },
     ];
 
     for (const rule of rules) {
-      if (existing.some((r) => r.name === rule.name)) {
-        console.log(`[skip] Regra de AutoMod já existe: ${rule.name}`);
-        continue;
-      }
-
       const actions = [{ type: Action.BlockMessage }];
       if (alertChannel) actions.push({ type: Action.SendAlertMessage, metadata: { channel: alertChannel } });
 
@@ -429,16 +442,22 @@ async function applyAutoMod(ctx) {
         name: rule.name,
         eventType: Event.MessageSend,
         triggerType: rule.triggerType,
-        triggerMetadata: rule.triggerMetadata,
         actions,
         enabled: true,
         exemptRoles: staffIds,
+        exemptChannels: [],
         reason: `${SERVIDOR} · configuração automática`,
       };
-      if (rule.exemptChannels?.length) options.exemptChannels = rule.exemptChannels;
+      if (rule.triggerMetadata) options.triggerMetadata = rule.triggerMetadata;
 
-      await guild.autoModerationRules.create(options);
-      console.log(`[ok] AutoMod ativo: ${rule.name}`);
+      const current = existing.find((r) => r.name === rule.name);
+      if (current) {
+        await current.edit(options);
+        console.log(`[ok] AutoMod atualizado: ${rule.name}`);
+      } else {
+        await guild.autoModerationRules.create(options);
+        console.log(`[ok] AutoMod ativo: ${rule.name}`);
+      }
       await wait(400);
     }
   } catch (error) {

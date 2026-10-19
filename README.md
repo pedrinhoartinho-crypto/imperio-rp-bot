@@ -47,7 +47,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Avisos** (só a equipe escreve) — anuncios-gerais, atualizações (anúncio), spoilers, enquetes
 - **Regras** (só a equipe escreve) — regras, regras-roleplay
 - **Comunidade** — geral, mídia, sugestões, parcerias, cargos
-- **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), avisos-ações
+- **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), servidores (lista oficial), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
 - **Equipe** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausências, registro-punições, logs-automod, logs-tickets, diretoria (só direção), sala-staff
@@ -91,7 +91,7 @@ Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (ob
 - Anti-spam
 - Palavras ofensivas (slurs)
 - Menções em massa (6 ou mais)
-- Convites e links de outros servidores (liberado em #parcerias)
+- Convites de servidores (bloqueados em todos os canais — só a equipe publica os servidores oficiais cadastrados)
 
 Alertas caem em #logs-automod. Todos os cargos da equipe são isentos.
 
