@@ -22,10 +22,32 @@ const LINKS = {
 
 const MENU_ROLE_KEYS = ['ping_anuncios', 'ping_acoes'];
 const AUTO_ROLE_KEY = 'membro';
-const TICKET_JUNIOR_KEYS = ['staff_rp'];
+const TICKET_JUNIOR_KEYS = ['staff_rp', 'auxiliar', 'estagiario'];
 
-const STAFF_KEYS = ['fundador', 'administrador', 'moderador', 'suporte', 'staff_rp'];
-const STAFF_SENIOR_KEYS = ['fundador', 'administrador'];
+const STAFF_KEYS = [
+  'fundador',
+  'administrador',
+  'diretor_geral',
+  'diretor_operacoes',
+  'diretor_tecnologia',
+  'diretor_marketing',
+  'gerente_geral',
+  'supervisor',
+  'coordenador',
+  'moderador',
+  'suporte',
+  'staff_rp',
+  'auxiliar',
+  'estagiario',
+];
+const STAFF_SENIOR_KEYS = [
+  'fundador',
+  'administrador',
+  'diretor_geral',
+  'diretor_operacoes',
+  'diretor_tecnologia',
+  'diretor_marketing',
+];
 
 const TICKETS = [
   {
@@ -87,12 +109,68 @@ const ROLES = [
     perms: ['Administrator'],
   },
   {
+    key: 'diretor_geral',
+    name: 'Diretor Geral',
+    color: '#123A5C',
+    hoist: true,
+    mentionable: false,
+    perms: ['ManageGuild', 'ManageChannels', 'ManageRoles', 'KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog', 'ManageWebhooks'],
+  },
+  {
+    key: 'diretor_operacoes',
+    name: 'Diretor de Operações',
+    color: '#1B4F72',
+    hoist: true,
+    mentionable: false,
+    perms: ['ManageGuild', 'ManageChannels', 'ManageRoles', 'KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
+  },
+  {
+    key: 'diretor_tecnologia',
+    name: 'Diretor de Tecnologia',
+    color: '#21618C',
+    hoist: true,
+    mentionable: false,
+    perms: ['ManageGuild', 'ManageChannels', 'ManageWebhooks', 'ManageMessages'],
+  },
+  {
+    key: 'diretor_marketing',
+    name: 'Diretor de Marketing',
+    color: '#2874A6',
+    hoist: true,
+    mentionable: false,
+    perms: ['ManageMessages'],
+  },
+  {
+    key: 'gerente_geral',
+    name: 'Gerente Geral',
+    color: '#2E86C1',
+    hoist: true,
+    mentionable: false,
+    perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
+  },
+  {
+    key: 'supervisor',
+    name: 'Supervisor',
+    color: '#3498DB',
+    hoist: true,
+    mentionable: false,
+    perms: ['ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
+  },
+  {
+    key: 'coordenador',
+    name: 'Coordenador',
+    color: '#5DADE2',
+    hoist: true,
+    mentionable: false,
+    perms: ['ModerateMembers', 'ManageMessages', 'ManageThreads'],
+  },
+  {
     key: 'moderador',
     name: 'Moderador',
     color: '#2E5A88',
     hoist: true,
     mentionable: false,
-    perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ViewAuditLog'],
+    perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
   },
   {
     key: 'suporte',
@@ -106,6 +184,22 @@ const ROLES = [
     key: 'staff_rp',
     name: 'Staff de RP',
     color: '#4B6A88',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'auxiliar',
+    name: 'Auxiliar',
+    color: '#5D6D7E',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'estagiario',
+    name: 'Estagiário',
+    color: '#7F8C8D',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -819,12 +913,25 @@ const CATEGORIES = [
           'Hierarquia da equipe',
           'Organograma e diretrizes. Cada área responde à direção, e a direção responde ao Fundador.',
           [
-            sec('Estrutura', [
+            sec('Direção', [
               '**Fundador** — visão geral e decisões finais.',
-              '**Administração** — gestão do servidor e da equipe.',
-              '**Moderação** — ordem nos canais e punições.',
+              '**Administrador** — administração total do servidor.',
+              '**Diretor Geral** — coordena todas as áreas.',
+              '**Diretor de Operações** — equipe, canais e rotina.',
+              '**Diretor de Tecnologia** — bots, sistemas e segurança.',
+              '**Diretor de Marketing** — divulgação e parcerias.',
+            ]),
+            sec('Gestão', [
+              '**Gerente Geral** — cobra metas e organiza a equipe.',
+              '**Supervisor** — acompanha moderadores e coordenadores.',
+              '**Coordenador** — lidera a moderação no dia a dia.',
+            ]),
+            sec('Linha de frente', [
+              '**Moderador** — ordem nos canais e punições.',
               '**Suporte** — atendimentos e tickets.',
               '**Staff de RP** — suporte no jogo e eventos.',
+              '**Auxiliar** — apoio à equipe, em treinamento.',
+              '**Estagiário** — período de teste, acompanhado de perto.',
             ]),
           ],
           'Dúvidas de carreira: fale com sua liderança direta.',
@@ -879,7 +986,7 @@ const CATEGORIES = [
           'Diretoria',
           'Discussões restritas à direção: estratégia, contratações e casos sensíveis.',
           [],
-          'Somente Fundador e Administradores.',
+          'Somente Fundador, Administrador e Diretores.',
           { accent: COLORS.red },
         ),
       },

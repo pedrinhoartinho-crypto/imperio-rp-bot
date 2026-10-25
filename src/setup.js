@@ -198,17 +198,12 @@ async function ensureRoles(ctx) {
 
   const me = await guild.members.fetchMe();
   const botRole = me.roles.highest;
-  const ordered = [botRole, ...cfg.ROLES.map((roleCfg) => ctx.roles[roleCfg.key])].filter(Boolean);
-  const known = new Set(ordered.map((role) => role.id));
-  const extras = guild.roles.cache.filter((role) => role.id !== guild.id && !known.has(role.id));
-  const all = [...ordered, ...extras.values()];
-
-  let top = guild.roles.cache.size - 1;
+  const ordered = cfg.ROLES.map((roleCfg) => ctx.roles[roleCfg.key]).filter(Boolean);
+  const slots = ordered.map((role) => role.position).sort((a, b) => b - a);
   const positions = [];
-  for (const role of all) {
-    if (role.position !== top) positions.push({ role, position: top });
-    top -= 1;
-  }
+  ordered.forEach((role, index) => {
+    if (role.position !== slots[index]) positions.push({ role, position: slots[index] });
+  });
 
   if (positions.length) {
     try {
@@ -272,6 +267,15 @@ async function ensureChannels(ctx) {
 
     if (category) {
       reused += 1;
+      const expected = buildOverwrites(catCfg.preset, ctx, catCfg);
+      if (!overwritesMatch(category, expected)) {
+        try {
+          await category.permissionOverwrites.set(expected);
+          console.log(`[ok] Permissões ajustadas: ${category.name}`);
+        } catch (error) {
+          console.warn(`[aviso] Não foi possível ajustar as permissões de ${category.name}: ${error.message}`);
+        }
+      }
     } else {
       category = await guild.channels.create({
         name: catCfg.name,

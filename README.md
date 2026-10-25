@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 10 categorias com emoji, 36 canais, 21 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 10 categorias com emoji, 36 canais, 30 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,7 +25,7 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 21 cargos, 10 categorias, 36 canais e 37 painéis, sem duplicatas.
+Estrutura criada do zero e auditada (0 divergências): 30 cargos, 10 categorias, 36 canais e 37 painéis, sem duplicatas.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
@@ -36,7 +36,7 @@ O padrão visual segue as boas práticas de servidores grandes: **um emoji por c
 - **Jogo** — procurar-cena, clipes e reportar-jogador (histórico restrito)
 - **Suporte** — abrir-ticket (Suporte, Denúncia, Recurso e Parceria — sem setor de Liderança), denúncias, recursos, bugs e avaliação da equipe
 - **Comunidade / Voz / Staff / Tickets** — conversa, mídia, sugestões, parcerias, canais de voz, equipe interna e categoria de tickets
-- **Cargos** — Fundador, Administração, Moderação, Suporte e Staff de RP; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; comunidade, pings e punições
+- **Cargos** — Fundador, Administrador, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; comunidade, pings e punições
 
 Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com ícone do canal no título, cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
 
