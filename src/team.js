@@ -1,8 +1,8 @@
 const { Routes } = require('discord.js');
 
 const TAG_KEY = 'asj';
-const TAG_PREFIX = '[𝔸𝕊𝕁] ';
-const TAG_PATTERN = /^(?:\[✦\s*𝔸𝕊𝕁\s*✦\]|\[\s*𝔸𝕊𝕁\s*\])\s*/u;
+const TAG_PREFIX = '𝔸𝕊𝕁| ';
+const TAG_PATTERN = /^(?:\[✦\s*𝔸𝕊𝕁\s*✦\]|\[\s*𝔸𝕊𝕁\s*\]|(?:𝔸𝕊𝕁|ASJ)\s*\|)\s*/iu;
 const MAX_NICK = 32;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const warned = new Set();
