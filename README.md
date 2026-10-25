@@ -36,7 +36,7 @@ O padrão visual segue as boas práticas de servidores grandes: **um emoji por c
 - **Jogo** — procurar-cena, clipes e reportar-jogador (histórico restrito)
 - **Suporte** — abrir-ticket (Suporte, Denúncia, Recurso e Parceria — sem setor de Liderança), denúncias, recursos, bugs e avaliação da equipe
 - **Comunidade / Voz / Staff / Tickets** — conversa, mídia, sugestões, parcerias, canais de voz, equipe interna e categoria de tickets
-- **Tag ASJ** — para staff e lideranças, automático: cargo dourado `✦ 𝔸𝕊𝕁 ✦` e prefixo no nome **`[✦ 𝔸𝕊𝕁 ✦] Nome`**. Entra ao ganhar um cargo da equipe e sai sozinho (cargo + prefixo) se perder todos. Atualiza na hora e é conferido a cada 10 minutos. Obs.: o apelido do dono do servidor só pode ser alterado por ele mesmo — nesse caso o cargo continua automático.
+- **Tag ASJ** — para staff e lideranças, automático: cargo dourado `𝔸𝕊𝕁` e prefixo no nome **`[𝔸𝕊𝕁] Nome`**. Entra ao ganhar um cargo da equipe e sai sozinho (cargo + prefixo) se perder todos. Atualiza na hora e é conferido a cada 10 minutos. Obs.: o apelido do dono do servidor só pode ser alterado por ele mesmo — nesse caso o cargo continua automático.
 - **Cargos** — Fundador, Administrador, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; comunidade, pings e punições — todos com cores de alto contraste no tema escuro
 
 Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com ícone do canal no título, cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.

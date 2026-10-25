@@ -254,7 +254,7 @@ const ROLES = [
   },
   {
     key: 'asj',
-    name: '✦ 𝔸𝕊𝕁 ✦',
+    name: '𝔸𝕊𝕁',
     color: '#FFD700',
     hoist: false,
     mentionable: false,
@@ -1025,7 +1025,9 @@ const LEGACY_CHANNELS = {
   '📜・regras': ['regras'],
   '📣・anuncios-gerais': ['anuncios-gerais'],
 };
-const LEGACY_ROLES = {};
+const LEGACY_ROLES = {
+  '𝔸𝕊𝕁': ['✦ 𝔸𝕊𝕁 ✦'],
+};
 
 module.exports = {
   GUILD_ID,

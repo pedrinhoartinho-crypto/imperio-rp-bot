@@ -1,7 +1,8 @@
 const { Routes } = require('discord.js');
 
 const TAG_KEY = 'asj';
-const TAG_PREFIX = '[✦ 𝔸𝕊𝕁 ✦] ';
+const TAG_PREFIX = '[𝔸𝕊𝕁] ';
+const TAG_PATTERN = /^(?:\[✦\s*𝔸𝕊𝕁\s*✦\]|\[\s*𝔸𝕊𝕁\s*\])\s*/u;
 const MAX_NICK = 32;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const warned = new Set();
@@ -22,14 +23,31 @@ function truncate(text, max) {
   return chars.length > max ? chars.slice(0, max).join('') : String(text);
 }
 
+function cleanTag(nickname) {
+  if (!nickname) return null;
+  let current = nickname;
+  let matched = false;
+  let match;
+  while ((match = current.match(TAG_PATTERN))) {
+    current = current.slice(match[0].length);
+    matched = true;
+  }
+  return matched ? current : null;
+}
+
 function baseName(nickname, username) {
-  if (nickname?.startsWith(TAG_PREFIX)) return nickname.slice(TAG_PREFIX.length);
+  const clean = cleanTag(nickname);
+  if (clean !== null) return clean;
   return nickname ?? username;
 }
 
 function displayNameFor(nickname, username, isTeam) {
-  if (isTeam) return TAG_PREFIX + truncate(baseName(nickname, username), MAX_NICK - TAG_PREFIX.length);
-  if (nickname?.startsWith(TAG_PREFIX)) return baseName(nickname, username) || username;
+  if (isTeam) {
+    const base = baseName(nickname, username) || username;
+    return TAG_PREFIX + truncate(base, MAX_NICK - TAG_PREFIX.length);
+  }
+  const clean = cleanTag(nickname);
+  if (clean !== null) return clean || username;
   return nickname;
 }
 
