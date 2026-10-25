@@ -90,6 +90,16 @@ function buildPanel(def, ctx) {
     files.push({ attachment: filePath, name: filename });
   }
 
+  if (def.orgKey) {
+    const leader = ctx.leaders?.[def.orgKey];
+    container.addSeparatorComponents(new SeparatorBuilder());
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        leader ? `### 🔴 Assumida\nLíder: <@${leader}>` : '### 🟢 Livre\nNinguém assumiu ainda.',
+      ),
+    );
+  }
+
   for (const section of def.sections ?? []) {
     container.addSeparatorComponents(new SeparatorBuilder());
     container.addTextDisplayComponents(
@@ -119,7 +129,12 @@ function buildPanel(def, ctx) {
     new TextDisplayBuilder().setContent(`-# ${ctx.guild?.name ?? ctx.cfg.SERVIDOR} · Painel oficial · v${PANEL_VERSION}`),
   );
 
-  return { flags: MessageFlags.IsComponentsV2, components: [container], ...(files.length ? { files } : {}) };
+  return {
+    flags: MessageFlags.IsComponentsV2,
+    components: [container],
+    allowedMentions: { parse: [] },
+    ...(files.length ? { files } : {}),
+  };
 }
 
 function collectTexts(node, out = []) {
@@ -169,7 +184,6 @@ function buildV2JoinWelcome(member, ctx) {
   const rules = ctx.channels?.regras ? `<#${ctx.channels.regras}>` : 'as regras';
   const commands = ctx.channels?.cargos ? `<#${ctx.channels.cargos}>` : 'os cargos';
   const howto = ctx.channels?.['como-jogar'] ? `<#${ctx.channels['como-jogar']}>` : 'como jogar';
-  const sessions = ctx.channels?.sessao ? `<#${ctx.channels.sessao}>` : 'as sessões';
   const ticket = ctx.channels?.tickets ? `<#${ctx.channels.tickets}>` : 'o suporte';
 
   const container = new ContainerBuilder()
@@ -185,7 +199,7 @@ function buildV2JoinWelcome(member, ctx) {
     .addSeparatorComponents(new SeparatorBuilder())
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `### Primeiros passos\n1. Leia ${rules} e as regras de RP.\n2. Escolha seus avisos em ${commands}.\n3. Veja ${howto}.\n4. Acompanhe ${sessions} para saber quando a cidade abre.`,
+        `### Primeiros passos\n1. Leia ${rules} e as regras de RP.\n2. Escolha seus avisos em ${commands}.\n3. Veja ${howto} e acompanhe o status da cidade.`,
       ),
     )
     .addSeparatorComponents(new SeparatorBuilder())

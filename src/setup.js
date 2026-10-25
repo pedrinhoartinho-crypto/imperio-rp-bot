@@ -12,6 +12,7 @@ const {
   AutoModerationRuleEventType: Event,
 } = require('discord.js');
 const { buildMessage, stylize, LEGACY_TITLES } = require('./embeds');
+const { loadOrgs } = require('./store');
 const { buildPanel, titleOfPanel, titleOfPayload, panelFingerprint } = require('./v2');
 const { getConfig } = require('./config');
 
@@ -436,6 +437,7 @@ async function ensureChannels(ctx) {
               message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message) === expected,
           );
           if (current && panelFingerprint(current) === fingerprint) continue;
+          if (current && panelDef.orgKey) continue;
 
           const outdated = single
             ? mine.find(
@@ -490,6 +492,27 @@ async function ensureChannels(ctx) {
   }
 
   return { created, reused };
+}
+
+async function applyCategoryOrder(ctx) {
+  const { guild, cfg } = ctx;
+  const categories = cfg.CATEGORIES.map((category) =>
+    guild.channels.cache.find(
+      (channel) => channel.type === ChannelType.GuildCategory && channel.name === category.name,
+    ),
+  ).filter(Boolean);
+
+  let moved = false;
+  for (let index = 0; index < categories.length; index += 1) {
+    if (categories[index].position === index) continue;
+    try {
+      await categories[index].setPosition(index);
+      moved = true;
+    } catch (error) {
+      console.warn(`[aviso] Não foi possível mover ${categories[index].name}: ${error.message}`);
+    }
+  }
+  if (moved) console.log('[ok] Ordem das categorias ajustada.');
 }
 
 async function applyGuildSettings(ctx) {
@@ -601,12 +624,13 @@ async function setupGuild(client, guild, config) {
     throw new Error('O bot precisa das permissões "Gerenciar Cargos" e "Gerenciar Canais" (ou Administrador).');
   }
 
-  const ctx = { guild, cfg, botId: client.user.id, roles: {}, channels: {} };
+  const ctx = { guild, cfg, botId: client.user.id, roles: {}, channels: {}, leaders: loadOrgs(guild.id) };
   console.log(`[info] Preparando "${cfg.SERVIDOR}" em: ${guild.name}`);
 
   const roles = await ensureRoles(ctx);
   await applyAutorole(ctx);
   const channels = await ensureChannels(ctx);
+  await applyCategoryOrder(ctx);
   await applyGuildSettings(ctx);
   await applyAutoMod(ctx);
 

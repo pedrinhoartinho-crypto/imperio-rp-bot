@@ -15,7 +15,7 @@ const {
 const { getConfig } = require('./config');
 const { buildJoinWelcome } = require('./embeds');
 const { buildV2JoinWelcome } = require('./v2');
-const { loadShifts, saveShifts, loadOrgs, saveOrgs } = require('./store');
+const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const claimed = new Map();
@@ -84,59 +84,6 @@ async function handleRoleButton(interaction) {
     await member.roles.add(role);
     await replyEphemeral(interaction, `Cargo ${role.name} adicionado.`);
   }
-}
-
-async function assumeOrg(interaction) {
-  const cfg = getConfig(interaction.guildId);
-  if (!cfg) return;
-
-  const key = interaction.customId.slice('org:assumir:'.length);
-  const roleCfg = cfg.ROLES.find((role) => role.key === key);
-  if (!roleCfg) return;
-
-  const role =
-    interaction.guild.roles.cache.find((r) => r.name === roleCfg.name) ??
-    (await interaction.guild.roles.fetch().then((roles) => roles.find((r) => r.name === roleCfg.name)).catch(() => null));
-  if (!role) {
-    await replyEphemeral(interaction, 'Cargo indisponível no momento. Avise a administração.');
-    return;
-  }
-
-  if (interaction.member.roles.cache.has(role.id)) {
-    await replyEphemeral(interaction, `Você já é ${role.name}.`);
-    return;
-  }
-
-  const claims = loadOrgs(interaction.guildId);
-  const currentId = claims[key];
-  if (currentId && currentId !== interaction.user.id) {
-    const current = await interaction.guild.members.fetch(currentId).catch(() => null);
-    if (current?.roles.cache.has(role.id)) {
-      await replyEphemeral(
-        interaction,
-        `**${role.name}** já tem líder: ${current}. A staff precisa remover o cargo para liberar.`,
-      );
-      return;
-    }
-  }
-
-  const other = role.members.find((member) => member.id !== interaction.user.id);
-  if (other) {
-    claims[key] = other.id;
-    saveOrgs(interaction.guildId, claims);
-    await replyEphemeral(
-      interaction,
-      `**${role.name}** já tem líder: ${other}. A staff precisa remover o cargo para liberar.`,
-    );
-    return;
-  }
-
-  await interaction.member.roles.add(role, 'Assumiu organização');
-  claims[key] = interaction.user.id;
-  saveOrgs(interaction.guildId, claims);
-  await interaction.reply({
-    content: `✋ ${interaction.member} assumiu **${role.name}**!\nAgora é só publicar o recrutamento aqui no canal.`,
-  });
 }
 
 function findTicketCategory(guild, cfg) {
@@ -485,7 +432,6 @@ async function handleInteraction(interaction) {
       else if (customId === 'ticket:abrir') await openTicket(interaction, 'suporte');
       else if (customId.startsWith('ticket:abrir:')) await openTicket(interaction, customId.slice('ticket:abrir:'.length));
       else if (customId === 'ticket:assumir') await assumeTicket(interaction);
-      else if (customId.startsWith('org:assumir:')) await assumeOrg(interaction);
       else if (customId === 'ticket:fechar') await closeTicket(interaction);
       else if (customId === 'ponto:entrada') await handlePonto(interaction, 'entrada');
       else if (customId === 'ponto:saida') await handlePonto(interaction, 'saida');

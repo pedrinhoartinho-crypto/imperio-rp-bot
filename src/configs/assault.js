@@ -20,7 +20,7 @@ const LINKS = {
   trello: '',
 };
 
-const MENU_ROLE_KEYS = ['ping_anuncios', 'ping_sessao', 'ping_acoes'];
+const MENU_ROLE_KEYS = ['ping_anuncios', 'ping_acoes'];
 const AUTO_ROLE_KEY = 'membro';
 const TICKET_JUNIOR_KEYS = ['staff_rp'];
 
@@ -207,14 +207,6 @@ const ROLES = [
     perms: [],
   },
   {
-    key: 'ping_sessao',
-    name: 'Ping Sessão',
-    color: '#95A5A6',
-    hoist: false,
-    mentionable: true,
-    perms: [],
-  },
-  {
     key: 'ping_acoes',
     name: 'Ping Ações',
     color: '#95A5A6',
@@ -251,18 +243,12 @@ const ROLES = [
 const panel = (title, intro, sections = [], note, extra = {}) => ({ title, intro, sections, note, ...extra });
 const sec = (label, lines) => ({ label, lines });
 const orgPanel = (key, label, kind, file, description, accent) =>
-  panel(
-    `Assumir — ${label}`,
-    `### ${label}\n${kind} · ${description}`,
-    [],
-    'Clique no botão para receber o cargo de líder. Se já houver líder, peça à staff para liberar.',
-    {
-      accent,
-      image: `assets/orgs/${file}`,
-      imageAlt: `${kind} ${label}`,
-      button: { id: `org:assumir:${key}`, label: `Assumir ${label}`, emoji: '✋' },
-    },
-  );
+  panel(label, `${kind} · ${description}`, [], 'Use **/assumir** para definir o líder e **/liberar** para deixar o time livre.', {
+    accent,
+    orgKey: key,
+    image: `assets/orgs/${file}`,
+    imageAlt: `${kind} ${label}`,
+  });
 
 const CATEGORIES = [
   {
@@ -301,6 +287,113 @@ const CATEGORIES = [
           [],
           'Pings são usados com moderação pela administração.',
           { kind: 'cargos', accent: COLORS.gold },
+        ),
+      },
+    ],
+  },
+  {
+    name: '「🏙️」TIMES',
+    ref: 'cat-times',
+    preset: 'public',
+    channels: [
+      {
+        name: '📋・times',
+        ref: 'times',
+        preset: 'readonly',
+        topic: 'Veja se cada favela ou corporação está livre ou assumida',
+        panels: [
+          orgPanel(
+            'babilonia',
+            'Babilônia',
+            'Facção',
+            'babilonia.png',
+            'A favela mais temida da Zona Norte. Quem manda aqui, manda no morro.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'prazeres',
+            'Prazeres',
+            'Facção',
+            'prazeres.png',
+            'Comunidade unida e muita história pra contar. Cada rua tem um dono.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'rodo',
+            'Rodo',
+            'Facção',
+            'rodo.png',
+            'O complexo que nunca dorme. Movimento o dia inteiro.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'pmerj',
+            'PMERJ',
+            'Corporação',
+            'pmerj.png',
+            '12º Batalhão. Disciplina, farda e ordem na cidade.',
+            COLORS.blue,
+          ),
+          orgPanel(
+            'pcerj',
+            'PCERJ',
+            'Corporação',
+            'pcerj.png',
+            '27ª Delegacia. Investigação e inteligência contra o crime.',
+            COLORS.blue,
+          ),
+          orgPanel(
+            'bope',
+            'BOPE',
+            'Corporação',
+            'bope.png',
+            'Tropa de elite. Entra onde ninguém mais entra.',
+            COLORS.dark,
+          ),
+        ],
+      },
+      {
+        name: '🏚️・rec-facção',
+        ref: 'rec-faccao',
+        preset: 'leaders',
+        orgKeys: FACTION_KEYS,
+        topic: 'Recrutamento das facções (só líderes publicam)',
+        panel: panel(
+          'Recrutamento — Facções',
+          'Canal reservado às lideranças de **Rodo**, **Prazeres** e **Babilônia**. Só a liderança publica; todo mundo lê.',
+          [
+            sec('Modelo de anúncio', [
+              '**Facção:**',
+              '**Vagas:**',
+              '**Requisitos:**',
+              '**Como participar:** entre no servidor da facção citado no anúncio.',
+              '**Responsável:**',
+            ]),
+          ],
+          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada facção.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: '🚔・rec-corporação',
+        ref: 'rec-corporacao',
+        preset: 'leaders',
+        orgKeys: CORP_KEYS,
+        topic: 'Recrutamento das corporações (só comandos publicam)',
+        panel: panel(
+          'Recrutamento — Corporações',
+          'Canal reservado aos comandos da **PMERJ**, **PCERJ** e **BOPE**. Só a liderança publica; todo mundo lê.',
+          [
+            sec('Modelo de anúncio', [
+              '**Corporação:**',
+              '**Vagas:**',
+              '**Requisitos:**',
+              '**Como participar:** entre no servidor da corporação citado no anúncio.',
+              '**Responsável:**',
+            ]),
+          ],
+          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada corporação.',
+          { accent: COLORS.dark },
         ),
       },
     ],
@@ -359,7 +452,6 @@ const CATEGORIES = [
             sec('Cenas e ações', [
               'Use {{procurar-cena}} para combinar cenas antes de começar.',
               'Grave provas: {{clipes}} ajuda a resolver conflitos.',
-              'Sessões são anunciadas em {{sessao}} — leia o horário e o contexto.',
               'Ataques, operações e alianças precisam de justificativa e registro.',
             ]),
             sec('Facções e corporações', [
@@ -384,7 +476,7 @@ const CATEGORIES = [
             sec('Passo a passo', [
               '1. Leia as {{regras}} e as {{rp-regras}} — é rápido e evita punição.',
               '2. Escolha seus avisos em {{cargos}}.',
-              '3. Acompanhe {{status}} e {{sessao}} para saber quando a cidade abre.',
+              '3. Acompanhe {{status}} para saber quando a cidade abre.',
               '4. Entre no jogo pelo link divulgado nos anúncios.',
               '5. Use {{procurar-cena}} para encontrar RP com outros jogadores.',
             ]),
@@ -409,7 +501,7 @@ const CATEGORIES = [
           'Acompanhe aqui o estado da cidade. Cada atualização é publicada pela administração.',
           [
             sec('Situações', [
-              '🟢 **Online** — cidade aberta e sessões rolando.',
+              '🟢 **Online** — cidade aberta e tudo funcionando.',
               '🟡 **Manutenção** — ajustes em andamento.',
               '🔴 **Fechado** — cidade fechada no momento.',
             ]),
@@ -453,28 +545,6 @@ const CATEGORIES = [
         ),
       },
       {
-        name: '📡・sessao-iniciada',
-        ref: 'sessao',
-        type: 'announcement',
-        preset: 'readonly',
-        topic: 'Avisos de sessão aberta (megafone)',
-        panel: panel(
-          'Sessão iniciada',
-          'Quando a cidade abre, o anúncio chega aqui marcando @Ping Sessão. Fique de olho.',
-          [
-            sec('Modelo de anúncio', [
-              '**Sessão aberta!**',
-              'Horário: 20h às 23h',
-              'Cidade: Assault RJ',
-              'Como entrar: link divulgado nos anúncios',
-              'Marque @Ping Sessão em {{cargos}} para ser avisado.',
-            ]),
-          ],
-          'Sessões podem ser encerradas antes do horário sem aviso.',
-          { accent: COLORS.green },
-        ),
-      },
-      {
         name: '📊・enquetes',
         ref: 'enquetes',
         preset: 'readonly',
@@ -486,69 +556,6 @@ const CATEGORIES = [
           'Enquetes duram 48 horas. Votos são públicos.',
           { accent: COLORS.blue },
         ),
-      },
-    ],
-  },
-  {
-    name: '「🏙️」RECRUTAMENTO',
-    ref: 'cat-recrutamento',
-    preset: 'public',
-    channels: [
-      {
-        name: '✋・assumir-fac-e-corp',
-        ref: 'assumir-org',
-        preset: 'leaders',
-        topic: 'Assuma uma facção ou corporação e publique o recrutamento aqui',
-        panels: [
-          orgPanel(
-            'babilonia',
-            'Babilônia',
-            'Facção',
-            'babilonia.png',
-            'A favela mais temida da Zona Norte. Quem manda aqui, manda no morro.',
-            COLORS.red,
-          ),
-          orgPanel(
-            'prazeres',
-            'Prazeres',
-            'Facção',
-            'prazeres.png',
-            'Comunidade unida e muita história pra contar. Cada rua tem um dono.',
-            COLORS.red,
-          ),
-          orgPanel(
-            'rodo',
-            'Rodo',
-            'Facção',
-            'rodo.png',
-            'O complexo que nunca dorme. Movimento o dia inteiro.',
-            COLORS.red,
-          ),
-          orgPanel(
-            'pmerj',
-            'PMERJ',
-            'Corporação',
-            'pmerj.png',
-            '12º Batalhão. Disciplina, farda e ordem na cidade.',
-            COLORS.blue,
-          ),
-          orgPanel(
-            'pcerj',
-            'PCERJ',
-            'Corporação',
-            'pcerj.png',
-            '27ª Delegacia. Investigação e inteligência contra o crime.',
-            COLORS.blue,
-          ),
-          orgPanel(
-            'bope',
-            'BOPE',
-            'Corporação',
-            'bope.png',
-            'Tropa de elite. Entra onde ninguém mais entra.',
-            COLORS.dark,
-          ),
-        ],
       },
     ],
   },
