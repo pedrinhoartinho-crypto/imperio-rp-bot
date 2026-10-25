@@ -1,6 +1,6 @@
 {
   "name": "imperio-rp-setup-bot",
-  "version": "8.2.0",
+  "version": "8.3.0",
   "description": "Bot multi-servidor de configuração e gestão para RPs no Discord: estrutura completa, AutoMod, tickets por setor, bate-ponto, comandos e painéis em embed (Império) e Components V2 (Assault RJ).",
   "main": "src/index.js",
   "scripts": {

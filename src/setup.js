@@ -401,16 +401,23 @@ async function ensureChannels(ctx) {
 
       if (chCfg.ref) ctx.channels[chCfg.ref] = channel.id;
       if (!isNew && channel.type === ChannelType.GuildForum) continue;
-      if (chCfg.panel && cfg.LAYOUT === 'v2') {
-        const icon = chCfg.name.includes('・') ? chCfg.name.split('・')[0] : undefined;
-        pendingMessages.push({ channel, panel: chCfg.panel, icon, isNew });
+      if (cfg.LAYOUT === 'v2') {
+        const definitions = chCfg.panels ?? (chCfg.panel ? [chCfg.panel] : []);
+        if (definitions.length) {
+          const icon = chCfg.name.includes('・') ? chCfg.name.split('・')[0] : undefined;
+          for (const panel of definitions) {
+            pendingMessages.push({ channel, panel, icon, isNew, single: definitions.length === 1 });
+          }
+        } else if (chCfg.message) {
+          pendingMessages.push({ channel, key: chCfg.message, isNew });
+        }
       } else if (chCfg.message) {
         pendingMessages.push({ channel, key: chCfg.message, isNew });
       }
     }
   }
 
-  for (const { channel, key, panel: panelDef, icon, isNew } of pendingMessages) {
+  for (const { channel, key, panel: panelDef, icon, isNew, single } of pendingMessages) {
     const payload = panelDef ? buildPanel(panelDef, { ...ctx, channelIcon: icon }) : buildMessage(key, ctx);
     if (!payload) continue;
 
@@ -430,12 +437,17 @@ async function ensureChannels(ctx) {
           );
           if (current && panelFingerprint(current) === fingerprint) continue;
 
-          const outdated = mine.find(
-            (message) => message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message),
-          );
+          const outdated = single
+            ? mine.find(
+                (message) => message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message),
+              )
+            : undefined;
           const target = current ?? outdated;
           if (target) {
-            await target.edit({ components: payload.components });
+            await target.edit({
+              components: payload.components,
+              ...(payload.files ? { files: payload.files } : {}),
+            });
             console.log(`[ok] Painel atualizado em ${channel.name}.`);
             await wait(300);
             continue;

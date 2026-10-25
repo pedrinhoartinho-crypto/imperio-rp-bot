@@ -23,4 +23,23 @@ function saveShifts(guildId, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-module.exports = { loadShifts, saveShifts };
+function orgsFileFor(guildId) {
+  if (!guildId || guildId === process.env.GUILD_ID) return path.join(DATA_DIR, 'orgs.json');
+  return path.join(DATA_DIR, String(guildId), 'orgs.json');
+}
+
+function loadOrgs(guildId) {
+  try {
+    return JSON.parse(fs.readFileSync(orgsFileFor(guildId), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function saveOrgs(guildId, data) {
+  const file = orgsFileFor(guildId);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
+
+module.exports = { loadShifts, saveShifts, loadOrgs, saveOrgs };

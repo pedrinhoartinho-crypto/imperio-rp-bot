@@ -250,6 +250,19 @@ const ROLES = [
 
 const panel = (title, intro, sections = [], note, extra = {}) => ({ title, intro, sections, note, ...extra });
 const sec = (label, lines) => ({ label, lines });
+const orgPanel = (key, label, kind, file, description, accent) =>
+  panel(
+    `Assumir — ${label}`,
+    `### ${label}\n${kind} · ${description}`,
+    [],
+    'Clique no botão para receber o cargo de líder. Se já houver líder, peça à staff para liberar.',
+    {
+      accent,
+      image: `assets/orgs/${file}`,
+      imageAlt: `${kind} ${label}`,
+      button: { id: `org:assumir:${key}`, label: `Assumir ${label}`, emoji: '✋' },
+    },
+  );
 
 const CATEGORIES = [
   {
@@ -482,48 +495,60 @@ const CATEGORIES = [
     preset: 'public',
     channels: [
       {
-        name: '🏚️・facções',
-        ref: 'rec-faccao',
+        name: '✋・assumir-fac-e-corp',
+        ref: 'assumir-org',
         preset: 'leaders',
-        orgKeys: FACTION_KEYS,
-        topic: 'Anúncios de recrutamento das facções (só líderes publicam)',
-        panel: panel(
-          'Recrutamento — Facções',
-          'Canal reservado às lideranças de **Rodo**, **Prazeres** e **Babilônia**. Só a liderança publica; todo mundo lê.',
-          [
-            sec('Modelo de anúncio', [
-              '**Facção:**',
-              '**Vagas:**',
-              '**Requisitos:**',
-              '**Como participar:** entre no servidor da facção citado no anúncio.',
-              '**Responsável:**',
-            ]),
-          ],
-          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada facção.',
-          { accent: COLORS.red },
-        ),
-      },
-      {
-        name: '🚔・corporações',
-        ref: 'rec-corporacao',
-        preset: 'leaders',
-        orgKeys: CORP_KEYS,
-        topic: 'Anúncios de recrutamento das corporações (só comandos publicam)',
-        panel: panel(
-          'Recrutamento — Corporações',
-          'Canal reservado aos comandos da **PMERJ**, **PCERJ** e **BOPE**. Só a liderança publica; todo mundo lê.',
-          [
-            sec('Modelo de anúncio', [
-              '**Corporação:**',
-              '**Vagas:**',
-              '**Requisitos:**',
-              '**Como participar:** entre no servidor da corporação citado no anúncio.',
-              '**Responsável:**',
-            ]),
-          ],
-          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada corporação.',
-          { accent: COLORS.dark },
-        ),
+        topic: 'Assuma uma facção ou corporação e publique o recrutamento aqui',
+        panels: [
+          orgPanel(
+            'babilonia',
+            'Babilônia',
+            'Facção',
+            'babilonia.png',
+            'A favela mais temida da Zona Norte. Quem manda aqui, manda no morro.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'prazeres',
+            'Prazeres',
+            'Facção',
+            'prazeres.png',
+            'Comunidade unida e muita história pra contar. Cada rua tem um dono.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'rodo',
+            'Rodo',
+            'Facção',
+            'rodo.png',
+            'O complexo que nunca dorme. Movimento o dia inteiro.',
+            COLORS.red,
+          ),
+          orgPanel(
+            'pmerj',
+            'PMERJ',
+            'Corporação',
+            'pmerj.png',
+            '12º Batalhão. Disciplina, farda e ordem na cidade.',
+            COLORS.blue,
+          ),
+          orgPanel(
+            'pcerj',
+            'PCERJ',
+            'Corporação',
+            'pcerj.png',
+            '27ª Delegacia. Investigação e inteligência contra o crime.',
+            COLORS.blue,
+          ),
+          orgPanel(
+            'bope',
+            'BOPE',
+            'Corporação',
+            'bope.png',
+            'Tropa de elite. Entra onde ninguém mais entra.',
+            COLORS.dark,
+          ),
+        ],
       },
     ],
   },

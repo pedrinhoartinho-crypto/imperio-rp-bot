@@ -3,10 +3,13 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ContainerBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
   MessageFlags,
   SeparatorBuilder,
   TextDisplayBuilder,
 } = require('discord.js');
+const path = require('path');
 const { version: PANEL_VERSION } = require('../package.json');
 
 const TICKET_STYLES = [
@@ -64,6 +67,7 @@ function buildPanel(def, ctx) {
   const accent = def.accent ?? ctx.cfg.ACCENT ?? 0xd4af37;
   const icon = def.icon ?? ctx.channelIcon;
   const container = new ContainerBuilder().setAccentColor(accent);
+  const files = [];
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(`# ${icon ? `${icon} ` : ''}${tokenize(def.title, ctx)}`),
@@ -71,6 +75,19 @@ function buildPanel(def, ctx) {
 
   if (def.intro) {
     container.addTextDisplayComponents(new TextDisplayBuilder().setContent(tokenize(def.intro, ctx)));
+  }
+
+  if (def.image) {
+    const filePath = path.join(__dirname, '..', def.image);
+    const filename = path.basename(filePath);
+    container.addMediaGalleryComponents(
+      new MediaGalleryBuilder().addItems(
+        new MediaGalleryItemBuilder()
+          .setURL(`attachment://${filename}`)
+          .setDescription(def.imageAlt ?? def.title),
+      ),
+    );
+    files.push({ attachment: filePath, name: filename });
   }
 
   for (const section of def.sections ?? []) {
@@ -84,6 +101,14 @@ function buildPanel(def, ctx) {
 
   if (def.kind === 'tickets') container.addActionRowComponents(...ticketRows(ctx.cfg));
   if (def.kind === 'cargos') container.addActionRowComponents(...roleRows(ctx.cfg));
+  if (def.button) {
+    const button = new ButtonBuilder()
+      .setCustomId(def.button.id)
+      .setLabel(def.button.label)
+      .setStyle(def.button.style ?? ButtonStyle.Success);
+    if (def.button.emoji) button.setEmoji(def.button.emoji);
+    container.addActionRowComponents(new ActionRowBuilder().addComponents(button));
+  }
 
   if (def.note) {
     container.addSeparatorComponents(new SeparatorBuilder());
@@ -94,7 +119,7 @@ function buildPanel(def, ctx) {
     new TextDisplayBuilder().setContent(`-# ${ctx.guild?.name ?? ctx.cfg.SERVIDOR} · Painel oficial · v${PANEL_VERSION}`),
   );
 
-  return { flags: MessageFlags.IsComponentsV2, components: [container] };
+  return { flags: MessageFlags.IsComponentsV2, components: [container], ...(files.length ? { files } : {}) };
 }
 
 function collectTexts(node, out = []) {
