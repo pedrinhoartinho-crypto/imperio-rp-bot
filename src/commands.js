@@ -3,6 +3,7 @@ const { getConfig } = require('./config');
 const { isStaffMember, replyEphemeral } = require('./components');
 const { buildPanel, titleOfPanel, titleOfPayload } = require('./v2');
 const { loadOrgs, saveOrgs } = require('./store');
+const { syncMemberTag } = require('./team');
 
 const ORG_CHOICES = [
   { name: 'Babilônia', value: 'babilonia' },
@@ -304,6 +305,7 @@ async function handleAssumir(interaction) {
   }
 
   await lider.roles.add(role, `Assumiu ${role.name} (por ${interaction.user.tag})`);
+  await syncMemberTag(lider, cfg);
   claims[key] = lider.id;
   saveOrgs(interaction.guildId, claims);
   await refreshOrgCard(interaction.guild, cfg, key).catch((error) =>
@@ -332,12 +334,19 @@ async function handleLiberar(interaction) {
   const claims = loadOrgs(interaction.guildId);
   const previousId = claims[key] ?? (await leaderFromCard(interaction.guild, cfg, key));
 
+  const touched = new Set();
   for (const member of role.members.values()) {
+    touched.add(member.id);
     await member.roles.remove(role).catch(() => {});
   }
   if (previousId) {
+    touched.add(previousId);
     const previous = await interaction.guild.members.fetch(previousId).catch(() => null);
     if (previous) await previous.roles.remove(role).catch(() => {});
+  }
+  for (const id of touched) {
+    const member = await interaction.guild.members.fetch(id).catch(() => null);
+    if (member) await syncMemberTag(member, cfg);
   }
 
   delete claims[key];

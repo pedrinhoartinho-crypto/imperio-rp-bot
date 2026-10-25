@@ -5,6 +5,7 @@ const setupGuild = require('./setup');
 const { CONFIGS, getConfig, getConfigByKey } = require('./config');
 const { handleInteraction, handleMessage, handleGuildMemberAdd } = require('./components');
 const { registerCommands, handleCommand } = require('./commands');
+const { syncGuildTags, syncMemberTag } = require('./team');
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
@@ -70,6 +71,14 @@ function attach(client) {
     }
 
     console.log('[ok] Bot online. Mantenha este terminal aberto para botões, tickets e comandos funcionarem.');
+
+    const syncTags = async () => {
+      for (const { id, cfg } of targets) {
+        const guild = await client.guilds.fetch(id).catch(() => null);
+        if (guild) await syncGuildTags(guild, cfg).catch(() => {});
+      }
+    };
+    setInterval(() => syncTags().catch(() => {}), 10 * 60 * 1000);
   });
 
   client.on('interactionCreate', (interaction) => {
@@ -80,6 +89,10 @@ function attach(client) {
 
   client.on('messageCreate', (message) => handleMessage(message));
   client.on('guildMemberAdd', (member) => handleGuildMemberAdd(member));
+  client.on('guildMemberUpdate', (oldMember, newMember) => {
+    const cfg = getConfig(newMember.guild.id);
+    if (cfg) syncMemberTag(newMember, cfg).catch(() => {});
+  });
 }
 
 function launch(intents, allowFallback) {

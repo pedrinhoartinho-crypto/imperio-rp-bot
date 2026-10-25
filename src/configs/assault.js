@@ -253,6 +253,14 @@ const ROLES = [
     perms: [],
   },
   {
+    key: 'asj',
+    name: '✦ 𝔸𝕊𝕁 ✦',
+    color: '#D4AF37',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
     key: 'membro',
     name: 'Cidadão',
     color: '#808B96',

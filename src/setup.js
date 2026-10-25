@@ -13,6 +13,7 @@ const {
 } = require('discord.js');
 const { buildMessage, stylize, LEGACY_TITLES } = require('./embeds');
 const { loadOrgs } = require('./store');
+const { syncGuildTags } = require('./team');
 const { buildPanel, titleOfPanel, titleOfPayload, panelFingerprint } = require('./v2');
 const { getConfig } = require('./config');
 
@@ -635,6 +636,7 @@ async function setupGuild(client, guild, config) {
   await applyAutorole(ctx);
   const channels = await ensureChannels(ctx);
   await applyCategoryOrder(ctx);
+  await syncGuildTags(guild, cfg);
   await applyGuildSettings(ctx);
   await applyAutoMod(ctx);
 
