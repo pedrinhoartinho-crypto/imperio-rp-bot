@@ -95,7 +95,7 @@ const ROLES = [
   {
     key: 'fundador',
     name: 'Fundador',
-    color: '#0F2A44',
+    color: '#F39C12',
     hoist: true,
     mentionable: false,
     perms: ['Administrator'],
@@ -103,7 +103,7 @@ const ROLES = [
   {
     key: 'administrador',
     name: 'Administrador',
-    color: '#1F3A5F',
+    color: '#E74C3C',
     hoist: true,
     mentionable: false,
     perms: ['Administrator'],
@@ -111,7 +111,7 @@ const ROLES = [
   {
     key: 'diretor_geral',
     name: 'Diretor Geral',
-    color: '#123A5C',
+    color: '#FF8C00',
     hoist: true,
     mentionable: false,
     perms: ['ManageGuild', 'ManageChannels', 'ManageRoles', 'KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog', 'ManageWebhooks'],
@@ -119,7 +119,7 @@ const ROLES = [
   {
     key: 'diretor_operacoes',
     name: 'Diretor de Operações',
-    color: '#1B4F72',
+    color: '#F1C40F',
     hoist: true,
     mentionable: false,
     perms: ['ManageGuild', 'ManageChannels', 'ManageRoles', 'KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
@@ -127,7 +127,7 @@ const ROLES = [
   {
     key: 'diretor_tecnologia',
     name: 'Diretor de Tecnologia',
-    color: '#21618C',
+    color: '#1ABC9C',
     hoist: true,
     mentionable: false,
     perms: ['ManageGuild', 'ManageChannels', 'ManageWebhooks', 'ManageMessages'],
@@ -135,7 +135,7 @@ const ROLES = [
   {
     key: 'diretor_marketing',
     name: 'Diretor de Marketing',
-    color: '#2874A6',
+    color: '#F06292',
     hoist: true,
     mentionable: false,
     perms: ['ManageMessages'],
@@ -143,7 +143,7 @@ const ROLES = [
   {
     key: 'gerente_geral',
     name: 'Gerente Geral',
-    color: '#2E86C1',
+    color: '#BA68C8',
     hoist: true,
     mentionable: false,
     perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
@@ -151,7 +151,7 @@ const ROLES = [
   {
     key: 'supervisor',
     name: 'Supervisor',
-    color: '#3498DB',
+    color: '#9575CD',
     hoist: true,
     mentionable: false,
     perms: ['ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
@@ -159,7 +159,7 @@ const ROLES = [
   {
     key: 'coordenador',
     name: 'Coordenador',
-    color: '#5DADE2',
+    color: '#7986CB',
     hoist: true,
     mentionable: false,
     perms: ['ModerateMembers', 'ManageMessages', 'ManageThreads'],
@@ -167,7 +167,7 @@ const ROLES = [
   {
     key: 'moderador',
     name: 'Moderador',
-    color: '#2E5A88',
+    color: '#4CAF50',
     hoist: true,
     mentionable: false,
     perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
@@ -175,7 +175,7 @@ const ROLES = [
   {
     key: 'suporte',
     name: 'Suporte',
-    color: '#3A7CA5',
+    color: '#00BCD4',
     hoist: true,
     mentionable: true,
     perms: ['ManageMessages'],
@@ -183,7 +183,7 @@ const ROLES = [
   {
     key: 'staff_rp',
     name: 'Staff de RP',
-    color: '#4B6A88',
+    color: '#8BC34A',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -191,7 +191,7 @@ const ROLES = [
   {
     key: 'auxiliar',
     name: 'Auxiliar',
-    color: '#5D6D7E',
+    color: '#FFC107',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -199,7 +199,7 @@ const ROLES = [
   {
     key: 'estagiario',
     name: 'Estagiário',
-    color: '#7F8C8D',
+    color: '#BDC3C7',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -207,7 +207,7 @@ const ROLES = [
   {
     key: 'pmerj',
     name: 'Comando PMERJ',
-    color: '#1B4F72',
+    color: '#2196F3',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -215,7 +215,7 @@ const ROLES = [
   {
     key: 'pcerj',
     name: 'Comando PCERJ',
-    color: '#154360',
+    color: '#E040FB',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -223,7 +223,7 @@ const ROLES = [
   {
     key: 'bope',
     name: 'Comando BOPE',
-    color: '#111111',
+    color: '#00E676',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -231,7 +231,7 @@ const ROLES = [
   {
     key: 'rodo',
     name: 'Líder do Rodo',
-    color: '#922B21',
+    color: '#FF5722',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -239,7 +239,7 @@ const ROLES = [
   {
     key: 'prazeres',
     name: 'Líder dos Prazeres',
-    color: '#7B241C',
+    color: '#FF4081',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -247,7 +247,7 @@ const ROLES = [
   {
     key: 'babilonia',
     name: 'Líder da Babilônia',
-    color: '#A04000',
+    color: '#FF9800',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -255,7 +255,7 @@ const ROLES = [
   {
     key: 'asj',
     name: '✦ 𝔸𝕊𝕁 ✦',
-    color: '#D4AF37',
+    color: '#FFD700',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -263,7 +263,7 @@ const ROLES = [
   {
     key: 'membro',
     name: 'Cidadão',
-    color: '#808B96',
+    color: '#AAB7B8',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -279,7 +279,7 @@ const ROLES = [
   {
     key: 'apoiador',
     name: 'Apoiador',
-    color: '#D4AF37',
+    color: '#FFB300',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -287,7 +287,7 @@ const ROLES = [
   {
     key: 'criador',
     name: 'Criador de Conteúdo',
-    color: '#E67E22',
+    color: '#FF7043',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -295,7 +295,7 @@ const ROLES = [
   {
     key: 'parceiro',
     name: 'Parceiro',
-    color: '#616A6B',
+    color: '#26C6DA',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -303,7 +303,7 @@ const ROLES = [
   {
     key: 'ping_anuncios',
     name: 'Ping Anúncios',
-    color: '#95A5A6',
+    color: '#42A5F5',
     hoist: false,
     mentionable: true,
     perms: [],
@@ -311,7 +311,7 @@ const ROLES = [
   {
     key: 'ping_acoes',
     name: 'Ping Ações',
-    color: '#95A5A6',
+    color: '#536DFE',
     hoist: false,
     mentionable: true,
     perms: [],
@@ -319,7 +319,7 @@ const ROLES = [
   {
     key: 'advertido',
     name: 'Advertido',
-    color: '#E67E22',
+    color: '#FFA726',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -327,7 +327,7 @@ const ROLES = [
   {
     key: 'mutado',
     name: 'Mutado',
-    color: '#4F545C',
+    color: '#90A4AE',
     hoist: false,
     mentionable: false,
     perms: [],
@@ -335,7 +335,7 @@ const ROLES = [
   {
     key: 'banido',
     name: 'Banido',
-    color: '#111111',
+    color: '#EF5350',
     hoist: false,
     mentionable: false,
     perms: [],
