@@ -2,6 +2,7 @@ require('dotenv').config();
 const http = require('node:http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const setupGuild = require('./setup');
+const { CONFIGS, getConfig, getConfigByKey } = require('./config');
 const { handleInteraction, handleMessage, handleGuildMemberAdd } = require('./components');
 const { registerCommands, handleCommand } = require('./commands');
 
@@ -16,13 +17,42 @@ if (!TOKEN || !GUILD_ID) {
 const setupOnly = process.argv.includes('--setup-only');
 const BASE_INTENTS = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
 
+function targetFor(key) {
+  const direct = getConfig(key);
+  if (direct) return { id: key, cfg: direct };
+
+  const cfg = getConfigByKey(key);
+  if (!cfg) return null;
+
+  const entry = [...CONFIGS.entries()].find(([, value]) => value === cfg);
+  return entry ? { id: entry[0], cfg } : null;
+}
+
+function resolveTargets() {
+  const key = process.env.SETUP_GUILD;
+  if (setupOnly && key) {
+    const target = targetFor(key);
+    if (!target) {
+      console.error(`[erro] Nenhuma configuração encontrada para SETUP_GUILD="${key}".`);
+      process.exit(1);
+    }
+    return [target];
+  }
+  if (setupOnly) return [{ id: GUILD_ID, cfg: getConfig(GUILD_ID) }].filter((target) => target.cfg);
+  return [...CONFIGS.entries()].map(([id, cfg]) => ({ id, cfg }));
+}
+
 function attach(client) {
   client.once('ready', async () => {
     console.log(`[info] Conectado como ${client.user.tag}`);
 
+    const targets = resolveTargets();
+
     try {
-      const guild = await client.guilds.fetch(GUILD_ID);
-      await setupGuild(client, guild);
+      for (const { id, cfg } of targets) {
+        const guild = await client.guilds.fetch(id);
+        await setupGuild(client, guild, cfg);
+      }
 
       if (setupOnly) {
         console.log('[ok] Estrutura concluída.');
@@ -30,7 +60,10 @@ function attach(client) {
         process.exit(0);
       }
 
-      await registerCommands(guild);
+      for (const { id } of targets) {
+        const guild = await client.guilds.fetch(id);
+        await registerCommands(guild);
+      }
     } catch (error) {
       console.error(`[erro] ${error.message ?? error}`);
       process.exit(1);
@@ -40,6 +73,7 @@ function attach(client) {
   });
 
   client.on('interactionCreate', (interaction) => {
+    if (!interaction.guild || !getConfig(interaction.guildId)) return;
     if (interaction.isChatInputCommand()) handleCommand(interaction);
     else handleInteraction(interaction);
   });
@@ -72,7 +106,7 @@ function startKeepAlive() {
   http
     .createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('Imperio RP Bot online');
+      res.end('RP Bot online');
     })
     .listen(port, () => console.log(`[ok] Servidor HTTP na porta ${port} (keep-alive do Render).`));
 

@@ -12,26 +12,32 @@ const {
   TextInputBuilder,
   TextInputStyle,
 } = require('discord.js');
-const { ROLES, STAFF_KEYS, TICKET_JUNIOR_KEYS, TICKETS, CATEGORY_REFS, channelName, AUTO_ROLE_KEY } = require('./config');
+const { getConfig } = require('./config');
 const { buildJoinWelcome } = require('./embeds');
+const { buildV2JoinWelcome } = require('./v2');
 const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const TICKET_STAFF_KEYS = STAFF_KEYS.filter((key) => !TICKET_JUNIOR_KEYS.includes(key));
 const claimed = new Map();
 
-function namesFor(keys) {
-  return keys.map((key) => ROLES.find((role) => role.key === key)?.name).filter(Boolean);
+function namesFor(cfg, keys) {
+  return keys.map((key) => cfg.ROLES.find((role) => role.key === key)?.name).filter(Boolean);
 }
 
-function isStaffMember(member) {
-  const names = namesFor(STAFF_KEYS);
+function roleNameFor(cfg, key) {
+  return cfg.ROLES.find((role) => role.key === key)?.name;
+}
+
+function isStaffMember(member, cfg) {
+  if (!cfg) return false;
+  const names = namesFor(cfg, cfg.STAFF_KEYS);
   return member.roles.cache.some((role) => names.includes(role.name));
 }
 
-function isTicketStaff(member) {
-  const names = namesFor(TICKET_STAFF_KEYS);
+function isTicketStaff(member, cfg) {
+  if (!cfg) return false;
+  const keys = cfg.STAFF_KEYS.filter((key) => !cfg.TICKET_JUNIOR_KEYS.includes(key));
+  const names = namesFor(cfg, keys);
   return member.roles.cache.some((role) => names.includes(role.name));
 }
 
@@ -57,11 +63,14 @@ async function replyEphemeral(interaction, content) {
 }
 
 async function handleRoleButton(interaction) {
-  const key = interaction.customId.slice('cargo:'.length);
-  const cfg = ROLES.find((role) => role.key === key);
+  const cfg = getConfig(interaction.guildId);
   if (!cfg) return;
 
-  const role = interaction.guild.roles.cache.find((r) => r.name === cfg.name);
+  const key = interaction.customId.slice('cargo:'.length);
+  const roleCfg = cfg.ROLES.find((role) => role.key === key);
+  if (!roleCfg) return;
+
+  const role = interaction.guild.roles.cache.find((r) => r.name === roleCfg.name);
   if (!role) {
     await replyEphemeral(interaction, 'Cargo indisponível no momento. Avise a administração.');
     return;
@@ -77,17 +86,20 @@ async function handleRoleButton(interaction) {
   }
 }
 
-function findTicketCategory(guild) {
+function findTicketCategory(guild, cfg) {
   return guild.channels.cache.find(
-    (channel) => channel.type === ChannelType.GuildCategory && channel.name === CATEGORY_REFS['cat-tickets'],
+    (channel) => channel.type === ChannelType.GuildCategory && channel.name === cfg.CATEGORY_REFS['cat-tickets'],
   );
 }
 
 async function openTicket(interaction, key) {
-  const cfg = TICKETS.find((ticket) => ticket.key === key) ?? TICKETS[0];
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  const ticketCfg = cfg.TICKETS.find((ticket) => ticket.key === key) ?? cfg.TICKETS[0];
   const { guild, user } = interaction;
 
-  const category = findTicketCategory(guild);
+  const category = findTicketCategory(guild, cfg);
   if (!category) {
     await replyEphemeral(interaction, 'O sistema de tickets ainda não está disponível. Rode o setup do bot.');
     return;
@@ -111,30 +123,33 @@ async function openTicket(interaction, key) {
     P.AddReactions,
   ];
 
+  const keys = cfg.STAFF_KEYS.filter((entry) => !cfg.TICKET_JUNIOR_KEYS.includes(entry));
+  const staffNames = namesFor(cfg, keys);
   const staffIds = guild.roles.cache
-    .filter((role) => namesFor(TICKET_STAFF_KEYS).includes(role.name))
+    .filter((role) => staffNames.includes(role.name))
     .map((role) => role.id);
 
-  const suporte = guild.roles.cache.find((role) => role.name === 'Suporte');
+  const suporteName = roleNameFor(cfg, 'suporte');
+  const suporte = guild.roles.cache.find((role) => role.name === suporteName);
 
   const channel = await guild.channels.create({
-    name: `ticket-${slug(cfg.label)}-${slug(user.username)}`.slice(0, 100),
+    name: `ticket-${slug(ticketCfg.label)}-${slug(user.username)}`.slice(0, 100),
     type: ChannelType.GuildText,
     parent: category.id,
-    topic: `ticket:${cfg.key} | autor: ${user.username} (${user.id})`,
+    topic: `ticket:${ticketCfg.key} | autor: ${user.username} (${user.id})`,
     permissionOverwrites: [
       { id: guild.roles.everyone.id, deny: [P.ViewChannel] },
       { id: user.id, allow },
       { id: interaction.client.user.id, allow: [...allow, P.ManageMessages] },
       ...staffIds.map((id) => ({ id, allow })),
     ],
-    reason: `Abertura de ticket (${cfg.label})`,
+    reason: `Abertura de ticket (${ticketCfg.label})`,
   });
 
   const embed = new EmbedBuilder()
-    .setColor(cfg.color)
-    .setTitle(cfg.title)
-    .setDescription(cfg.instructions)
+    .setColor(ticketCfg.color)
+    .setTitle(ticketCfg.title)
+    .setDescription(ticketCfg.instructions)
     .setFooter({ text: 'Atendimento privado · aguarde a equipe' });
 
   const controls = new ActionRowBuilder().addComponents(
@@ -143,7 +158,7 @@ async function openTicket(interaction, key) {
   );
 
   await channel.send({
-    content: `<@${user.id}> seu atendimento de **${cfg.label}** foi aberto.${suporte ? `\n<@&${suporte.id}>` : ''}`,
+    content: `<@${user.id}> seu atendimento de **${ticketCfg.label}** foi aberto.${suporte ? `\n<@&${suporte.id}>` : ''}`,
     embeds: [embed],
     components: [controls],
   });
@@ -152,13 +167,16 @@ async function openTicket(interaction, key) {
 }
 
 async function assumeTicket(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
   const channel = interaction.channel;
-  if (!channel || channel.parent?.name !== CATEGORY_REFS['cat-tickets']) {
+  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) {
     await replyEphemeral(interaction, 'Este botão só funciona dentro de um ticket.');
     return;
   }
 
-  if (!isTicketStaff(interaction.member)) {
+  if (!isTicketStaff(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'Somente a equipe pode assumir atendimentos.');
     return;
   }
@@ -182,7 +200,10 @@ async function assumeTicket(interaction) {
 }
 
 async function sendTranscript(channel, meta) {
-  const logs = channel.guild.channels.cache.find((c) => c.name === channelName('ticket-logs'));
+  const cfg = getConfig(channel.guild.id);
+  if (!cfg) return;
+
+  const logs = channel.guild.channels.cache.find((c) => c.name === cfg.channelName('ticket-logs'));
   if (!logs) return;
 
   let messages = [];
@@ -221,18 +242,21 @@ async function sendTranscript(channel, meta) {
 }
 
 async function closeTicket(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
   const channel = interaction.channel;
-  if (!channel || channel.parent?.name !== CATEGORY_REFS['cat-tickets']) return;
+  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) return;
 
   const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
   const isAuthor = authorId === interaction.user.id;
-  if (!isAuthor && !isTicketStaff(interaction.member)) {
+  if (!isAuthor && !isTicketStaff(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'Apenas a equipe ou o autor podem fechar este ticket.');
     return;
   }
 
   const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
-  const label = TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
+  const label = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
 
   await interaction.reply({ content: 'Encerrando o atendimento e gerando o registro...', flags: MessageFlags.Ephemeral });
   await sendTranscript(channel, { authorId, label, closedBy: interaction.user });
@@ -243,12 +267,16 @@ async function closeTicket(interaction) {
 }
 
 async function handlePonto(interaction, action) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'O bate-ponto é exclusivo da equipe.');
     return;
   }
 
-  const shifts = loadShifts();
+  const guildId = interaction.guildId;
+  const shifts = loadShifts(guildId);
   const record = shifts[interaction.user.id] ?? { totalMs: 0 };
   record.name = interaction.member.displayName ?? interaction.user.username;
   const now = Date.now();
@@ -261,7 +289,7 @@ async function handlePonto(interaction, action) {
 
     record.startedAt = now;
     shifts[interaction.user.id] = record;
-    saveShifts(shifts);
+    saveShifts(guildId, shifts);
     await replyEphemeral(interaction, `Entrada registrada às <t:${Math.floor(now / 1000)}:t>. Bom serviço!`);
     return;
   }
@@ -275,7 +303,7 @@ async function handlePonto(interaction, action) {
   record.totalMs += session;
   delete record.startedAt;
   shifts[interaction.user.id] = record;
-  saveShifts(shifts);
+  saveShifts(guildId, shifts);
 
   await replyEphemeral(
     interaction,
@@ -284,7 +312,8 @@ async function handlePonto(interaction, action) {
 }
 
 async function openAusenciaModal(interaction) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg || !isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'O registro de ausências é exclusivo da equipe.');
     return;
   }
@@ -327,7 +356,8 @@ async function openAusenciaModal(interaction) {
 }
 
 async function handleAusenciaSubmit(interaction) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg || !isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'O registro de ausências é exclusivo da equipe.');
     return;
   }
@@ -353,19 +383,28 @@ async function handleAusenciaSubmit(interaction) {
 async function handleGuildMemberAdd(member) {
   if (!member?.guild || member.user?.bot) return;
 
-  const cfg = ROLES.find((role) => role.key === AUTO_ROLE_KEY);
-  if (cfg) {
-    const role = member.guild.roles.cache.find((r) => r.name === cfg.name);
+  const cfg = getConfig(member.guild.id);
+  if (!cfg) return;
+
+  const roleCfg = cfg.ROLES.find((role) => role.key === cfg.AUTO_ROLE_KEY);
+  if (roleCfg) {
+    const role = member.guild.roles.cache.find((r) => r.name === roleCfg.name);
     if (role) await member.roles.add(role, 'Autorole: entrada no servidor').catch(() => {});
   }
 
-  const welcomeChannel = member.guild.channels.cache.find((c) => c.name === channelName('bem-vindo'));
+  const welcomeChannel = member.guild.channels.cache.find((c) => c.name === cfg.channelName('bem-vindo'));
   if (!welcomeChannel) return;
 
-  const ctx = { guild: member.guild, channels: {} };
-  for (const ref of ['regras', 'cargos', 'tickets', 'anuncios']) {
-    const channel = member.guild.channels.cache.find((c) => c.name === channelName(ref));
+  const ctx = { guild: member.guild, cfg, channels: {} };
+  const refs = ['regras', 'cargos', 'tickets', 'anuncios', 'como-jogar', 'whitelist'];
+  for (const ref of refs) {
+    const channel = member.guild.channels.cache.find((c) => c.name === cfg.channelName(ref));
     if (channel) ctx.channels[ref] = channel.id;
+  }
+
+  if (cfg.LAYOUT === 'v2') {
+    await welcomeChannel.send(buildV2JoinWelcome(member, ctx)).catch(() => {});
+    return;
   }
 
   await welcomeChannel.send({ content: `<@${member.id}>`, embeds: [buildJoinWelcome(member, ctx)] }).catch(() => {});
@@ -373,7 +412,10 @@ async function handleGuildMemberAdd(member) {
 
 async function handleMessage(message) {
   if (!message.guild || message.author.bot) return;
-  if (message.channel.name !== channelName('sugestoes')) return;
+
+  const cfg = getConfig(message.guild.id);
+  if (!cfg) return;
+  if (message.channel.name !== cfg.channelName('sugestoes')) return;
 
   await message.react('👍').catch(() => {});
   await message.react('👎').catch(() => {});
@@ -381,6 +423,7 @@ async function handleMessage(message) {
 
 async function handleInteraction(interaction) {
   if (!interaction.guild) return;
+  if (!getConfig(interaction.guildId)) return;
 
   try {
     if (interaction.isButton()) {

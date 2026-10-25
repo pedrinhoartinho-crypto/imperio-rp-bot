@@ -1,0 +1,1043 @@
+const GUILD_ID = '1515169542043734148';
+const SERVIDOR = 'Assault RJ';
+const NAME = 'Assault RJ';
+const DESCRIPTION = 'Roleplay carioca no Roblox. Entre, escolha sua história e viva a cidade.';
+const LAYOUT = 'v2';
+const ACCENT = 0xd4af37;
+
+const COLORS = {
+  gold: 0xd4af37,
+  red: 0x8b0000,
+  blue: 0x2e86c1,
+  green: 0x1e8449,
+  dark: 0x1f3a5f,
+  orange: 0xa04000,
+};
+
+const LINKS = {
+  jogo: '',
+  grupo: '',
+  trello: '',
+};
+
+const MENU_ROLE_KEYS = ['ping_anuncios', 'ping_sessao', 'ping_acoes'];
+const AUTO_ROLE_KEY = 'membro';
+const TICKET_JUNIOR_KEYS = ['staff_rp'];
+
+const STAFF_KEYS = ['fundador', 'administrador', 'moderador', 'suporte', 'staff_rp'];
+const STAFF_SENIOR_KEYS = ['fundador', 'administrador'];
+
+const TICKETS = [
+  {
+    key: 'suporte',
+    label: 'Suporte',
+    summary: 'Dúvidas e problemas gerais',
+    title: 'Atendimento — Suporte',
+    color: 0x2e86c1,
+    instructions:
+      'Descreva sua dúvida ou problema com detalhes. Se envolver o jogo, anexe prints ou vídeos.',
+  },
+  {
+    key: 'denuncia',
+    label: 'Denúncia',
+    summary: 'Denúncias com provas',
+    title: 'Atendimento — Denúncia',
+    color: 0x8b0000,
+    instructions:
+      'Informe quem está sendo denunciado, o que aconteceu e anexe provas. Denúncias falsas geram punição.',
+  },
+  {
+    key: 'recurso',
+    label: 'Recurso',
+    summary: 'Revisão de punições',
+    title: 'Atendimento — Recurso',
+    color: 0xa04000,
+    instructions:
+      'Explique a punição recebida e o que deseja acrescentar. A decisão final é da direção.',
+  },
+  {
+    key: 'parceria',
+    label: 'Parceria',
+    summary: 'Propostas de parceria',
+    title: 'Atendimento — Parceria',
+    color: 0xd4af37,
+    instructions: 'Envie o nome do projeto, link do servidor, número de membros e a proposta.',
+  },
+  {
+    key: 'lideranca',
+    label: 'Liderança',
+    summary: 'Verificação de líderes',
+    title: 'Atendimento — Liderança',
+    color: 0x1f3a5f,
+    instructions:
+      'Setor para líderes e sub-líderes de facções e corporações. Informe a organização e o responsável.',
+  },
+];
+
+const FACTIONS = [
+  { key: 'rodo', name: 'Rodo', channel: 'rodo', palette: ['#922B21', '#A93226', '#C0392B', '#CD6155'] },
+  { key: 'prazeres', name: 'Prazeres', channel: 'prazeres', palette: ['#7B241C', '#922B21', '#A93226', '#C0392B'] },
+  { key: 'babilonia', name: 'Babilônia', channel: 'babilonia', palette: ['#A04000', '#B9770E', '#CA6F1E', '#D68910'] },
+];
+
+const FACTIONS_RANKS = ['Líder', 'Sub-Líder', 'Membro', 'Novato'];
+
+const CORPS = [
+  {
+    key: 'pmerj',
+    name: 'PMERJ',
+    channel: 'pmerj',
+    palette: ['#1B4F72', '#2874A6', '#2E86C1', '#5499C7', '#7FB3D5'],
+    ranks: ['Coronel', 'Tenente', 'Sargento', 'Cabo', 'Soldado'],
+  },
+  {
+    key: 'pcerj',
+    name: 'PCERJ',
+    channel: 'pcerj',
+    palette: ['#154360', '#1A5276', '#1F618D', '#2471A3'],
+    ranks: ['Delegado', 'Escrivão', 'Investigador', 'Agente'],
+  },
+  {
+    key: 'bope',
+    name: 'BOPE',
+    channel: 'bope',
+    palette: ['#0B0B0B', '#151515', '#1F1F1F', '#292929', '#333333'],
+    ranks: ['Comandante', 'Capitão', 'Tenente', 'Sargento', 'Soldado de Elite'],
+  },
+];
+
+const orgRoleKeys = (faction) => FACTIONS_RANKS.map((rank, index) => `${faction.key}_${index}`);
+
+const ROLES = [
+  {
+    key: 'fundador',
+    name: 'Fundador',
+    color: '#0F2A44',
+    hoist: true,
+    mentionable: false,
+    perms: ['Administrator'],
+  },
+  {
+    key: 'administrador',
+    name: 'Administrador',
+    color: '#1F3A5F',
+    hoist: true,
+    mentionable: false,
+    perms: ['Administrator'],
+  },
+  {
+    key: 'moderador',
+    name: 'Moderador',
+    color: '#2E5A88',
+    hoist: true,
+    mentionable: false,
+    perms: ['KickMembers', 'ModerateMembers', 'ManageMessages', 'ViewAuditLog'],
+  },
+  {
+    key: 'suporte',
+    name: 'Suporte',
+    color: '#3A7CA5',
+    hoist: true,
+    mentionable: true,
+    perms: ['ManageMessages'],
+  },
+  {
+    key: 'staff_rp',
+    name: 'Staff de RP',
+    color: '#4B6A88',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  ...CORPS.flatMap((corp) =>
+    corp.ranks.map((rank, index) => ({
+      key: `${corp.key}_${index}`,
+      name: `${corp.name} · ${rank}`,
+      color: corp.palette[index],
+      hoist: index === 0,
+      mentionable: false,
+      perms: [],
+    })),
+  ),
+  ...FACTIONS.flatMap((faction) =>
+    FACTIONS_RANKS.map((rank, index) => ({
+      key: `${faction.key}_${index}`,
+      name: `${rank} do ${faction.name}`,
+      color: faction.palette[index],
+      hoist: index === 0,
+      mentionable: index === 0,
+      perms: [],
+    })),
+  ),
+  {
+    key: 'membro',
+    name: 'Cidadão',
+    color: '#808B96',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'booster',
+    name: 'Booster',
+    color: '#F47FFF',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'apoiador',
+    name: 'Apoiador',
+    color: '#D4AF37',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'criador',
+    name: 'Criador de Conteúdo',
+    color: '#E67E22',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'parceiro',
+    name: 'Parceiro',
+    color: '#616A6B',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'ping_anuncios',
+    name: 'Ping Anúncios',
+    color: '#95A5A6',
+    hoist: false,
+    mentionable: true,
+    perms: [],
+  },
+  {
+    key: 'ping_sessao',
+    name: 'Ping Sessão',
+    color: '#95A5A6',
+    hoist: false,
+    mentionable: true,
+    perms: [],
+  },
+  {
+    key: 'ping_acoes',
+    name: 'Ping Ações',
+    color: '#95A5A6',
+    hoist: false,
+    mentionable: true,
+    perms: [],
+  },
+  {
+    key: 'advertido',
+    name: 'Advertido',
+    color: '#E67E22',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'mutado',
+    name: 'Mutado',
+    color: '#4F545C',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'banido',
+    name: 'Banido',
+    color: '#111111',
+    hoist: false,
+    mentionable: false,
+    perms: [],
+  },
+];
+
+const LEADER_KEYS = FACTIONS.flatMap((faction) => [`${faction.key}_0`, `${faction.key}_1`]);
+
+const panel = (title, intro, sections = [], note, extra = {}) => ({ title, intro, sections, note, ...extra });
+const sec = (label, lines) => ({ label, lines });
+
+const orgPanel = (faction, kind) => {
+  if (kind === 'avisos') {
+    return panel(
+      `${faction.name} · Avisos`,
+      `Comunicados da liderança do **${faction.name}** para todos os membros.`,
+      [sec('Modelo de aviso', ['**Assunto:**', '**Data e horário:**', '**O que muda:**', '**Responsável:**'])],
+      'Somente liderança e sub-liderança publicam aqui.',
+      { accent: COLORS.red },
+    );
+  }
+  if (kind === 'acoes') {
+    return panel(
+      `${faction.name} · Ações`,
+      `Registro das ações do **${faction.name}**: assaltos, alianças, territórios e movimentações.`,
+      [sec('Modelo', ['**Tipo de ação:**', '**Local:**', '**Participantes:**', '**Resultado:**', '**Provas:**'])],
+      'Toda ação relevante deve ser registrada aqui.',
+      { accent: COLORS.orange },
+    );
+  }
+  return panel(
+    `${faction.name} · Geral`,
+    `Canal interno da organização **${faction.name}**. Converse, combine ações e mantenha o respeito entre os membros.`,
+    [sec('Acordos', ['Use este canal para alinhar o dia a dia.', 'Decisões importantes devem ser registradas nos avisos.'])],
+    'Canal visível apenas para membros da organização e da equipe.',
+    { accent: COLORS.dark },
+  );
+};
+
+const corpPanel = (corp, kind) => {
+  if (kind === 'avisos') {
+    return panel(
+      `${corp.name} · Avisos`,
+      `Comunicados do comando da **${corp.name}** para todos os integrantes.`,
+      [sec('Modelo de aviso', ['**Assunto:**', '**Data e horário:**', '**O que muda:**', '**Responsável:**'])],
+      'Somente o comando publica neste canal.',
+      { accent: COLORS.dark },
+    );
+  }
+  if (kind === 'operacoes') {
+    return panel(
+      `${corp.name} · Operações`,
+      `Registro de operações da **${corp.name}**: abordagens, ocorrências e ações conjuntas.`,
+      [sec('Modelo', ['**Tipo de operação:**', '**Local:**', '**Equipe:**', '**Resultado:**', '**Provas:**'])],
+      'Toda operação relevante deve ser registrada aqui.',
+      { accent: COLORS.blue },
+    );
+  }
+  return panel(
+    `${corp.name} · Geral`,
+    `Canal interno da corporação **${corp.name}**. Alinhe o turno, tire dúvidas e mantenha a disciplina.`,
+    [sec('Dia a dia', ['Use este canal para o dia a dia da corporação.', 'Escalas e mudanças ficam nos avisos.'])],
+    'Canal visível apenas para integrantes da corporação e da equipe.',
+    { accent: COLORS.dark },
+  );
+};
+
+const CATEGORIES = [
+  {
+    name: '👋 Chegada',
+    ref: 'cat-chegada',
+    preset: 'readonly',
+    channels: [
+      {
+        name: 'bem-vindo',
+        ref: 'bem-vindo',
+        preset: 'readonly',
+        topic: 'Boas-vindas e primeiros passos',
+        panel: panel(
+          'Bem-vindo ao Assault',
+          '**Assault RJ** é o baque carioca no Roblox. Aqui você constrói história, sobe na vida e vive a cidade — do asfalto ao morro, da delegacia ao baile.',
+          [
+            sec('Comece por aqui', [
+              'Leia as {{regras}} e as {{rp-regras}} — valem para todo mundo.',
+              'Escolha seus avisos em {{cargos}}.',
+              'Entenda o jogo em {{como-jogar}}.',
+              'Acompanhe novidades em {{anuncios}} e {{atualizacoes}}.',
+            ]),
+          ],
+          'Ao permanecer no servidor, você concorda com as regras.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'cargos',
+        ref: 'cargos',
+        preset: 'readonly',
+        topic: 'Escolha seus cargos de notificação',
+        panel: panel(
+          'Escolha seus cargos',
+          'Clique nos botões abaixo para receber ou remover os avisos. Você pode mudar de ideia quando quiser.',
+          [],
+          'Pings são usados com moderação pela administração.',
+          { kind: 'cargos', accent: COLORS.gold },
+        ),
+      },
+    ],
+  },
+  {
+    name: '📜 Informações',
+    ref: 'cat-informacoes',
+    preset: 'readonly',
+    channels: [
+      {
+        name: 'regras',
+        ref: 'regras',
+        preset: 'readonly',
+        topic: 'Regras do servidor',
+        panel: panel(
+          'Regras do Discord',
+          'O convívio aqui é simples: respeito acima de tudo. Quebrar as regras gera punição, sem aviso prévio quando necessário.',
+          [
+            sec('Conduta', [
+              'Respeite todos os membros e a equipe.',
+              'Proibido racismo, homofobia, assédio, ameaças ou qualquer preconceito.',
+              'Sem flood, spam ou divulgação não autorizada.',
+              'Proibido compartilhar conteúdo impróprio, ilegal ou de terceiros sem permissão.',
+              'Discussões políticas, religiosas e polêmicas ficam fora do servidor.',
+            ]),
+            sec('Canais e organização', [
+              'Use cada canal para o seu propósito.',
+              'Não marque a equipe sem necessidade — abra um atendimento em {{tickets}}.',
+              'Denúncias somente com provas, em {{reportar-jogador}} ou via ticket.',
+            ]),
+            sec('Punições', [
+              'Advertência, silenciamento, expulsão ou banimento, conforme a gravidade.',
+              'Recursos são analisados pela direção via ticket.',
+            ]),
+          ],
+          'A administração pode ajustar estas regras a qualquer momento.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: 'regras-rp',
+        ref: 'rp-regras',
+        preset: 'readonly',
+        topic: 'Regras de roleplay',
+        panel: panel(
+          'Regras de RP',
+          'Roleplay é interpretação. O que acontece no jogo fica no jogo — e todo mundo veio para se divertir.',
+          [
+            sec('Sempre', [
+              'Valorize o RP: ações têm consequência dentro da história.',
+              'Proibido RDM (matar sem motivo) e VDM (atropelar sem motivo).',
+              'Proibido Powergaming (forçar ações impossíveis) e Metagaming (usar informação de fora do jogo).',
+              'Proibido Fail RP, Cop Bait e abuso de bugs.',
+              'Respeite o limite dos outros jogadores — consentimento vale para cenas sensíveis.',
+            ]),
+            sec('Cenas e ações', [
+              'Use {{procurar-cena}} para combinar cenas antes de começar.',
+              'Grave provas: {{clipes}} ajuda a resolver conflitos.',
+              'Sessões são anunciadas em {{sessao}} — leia o horário e o contexto.',
+              'Ataques, operações e alianças precisam de justificativa e registro.',
+            ]),
+            sec('Facções e corporações', [
+              'Cada organização tem hierarquia e canal próprio.',
+              'Entradas e saídas de membros passam pela liderança.',
+              'A vida de um personagem tem peso: evite morrer e voltar como se nada tivesse acontecido.',
+            ]),
+          ],
+          'Descumprir regras de RP pode gerar punição no jogo e no Discord.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: 'como-jogar',
+        ref: 'como-jogar',
+        preset: 'readonly',
+        topic: 'Guia para começar a jogar',
+        panel: panel(
+          'Como jogar',
+          'Em poucos passos você entra na cidade. Leva menos de cinco minutos.',
+          [
+            sec('Passo a passo', [
+              '1. Envie sua ficha em {{whitelist}} e aguarde a aprovação.',
+              '2. Entre no jogo pelo link oficial disponível na whitelist.',
+              '3. Escolha um personagem e comece sua história.',
+              '4. Acompanhe {{sessao}} para saber quando a cidade está aberta.',
+              '5. Use {{procurar-cena}} para encontrar RP com outros jogadores.',
+            ]),
+            sec('Dentro do jogo', [
+              'Siga as regras de RP em todas as cenas.',
+              'Socorros, abordagens e ações policiais precisam de motivo.',
+              'Reporte problemas em {{reportar-jogador}} com provas.',
+            ]),
+          ],
+          'Dúvidas? Abra um atendimento em {{tickets}}.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'status-servidor',
+        ref: 'status',
+        type: 'announcement',
+        preset: 'readonly',
+        topic: 'Estado da cidade: online, manutenção ou fechado',
+        panel: panel(
+          'Status do servidor',
+          'Acompanhe aqui o estado da cidade. Cada atualização é publicada pela administração.',
+          [
+            sec('Situações', [
+              '🟢 **Online** — cidade aberta e sessões rolando.',
+              '🟡 **Manutenção** — ajustes em andamento.',
+              '🔴 **Fechado** — cidade fechada no momento.',
+            ]),
+          ],
+          'Não pergunte sobre abertura em outros canais — a resposta sempre aparece aqui.',
+          { accent: COLORS.green },
+        ),
+      },
+    ],
+  },
+  {
+    name: '📢 Anúncios',
+    ref: 'cat-anuncios',
+    preset: 'readonly',
+    channels: [
+      {
+        name: 'anuncios-gerais',
+        ref: 'anuncios',
+        preset: 'readonly',
+        topic: 'Comunicados oficiais da administração',
+        panel: panel(
+          'Anúncios',
+          'Comunicados oficiais da administração: eventos, mudanças e avisos importantes. Leia antes de perguntar.',
+          [],
+          'Marque @Ping Anúncios em {{cargos}} para receber os avisos.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
+        name: 'atualizações',
+        ref: 'atualizacoes',
+        type: 'announcement',
+        preset: 'readonly',
+        topic: 'Notas de atualização do jogo e do servidor',
+        panel: panel(
+          'Atualizações',
+          'Notas de atualização do jogo e do servidor. Cada mudança é registrada aqui.',
+          [],
+          'Sugestões são bem-vindas em {{sugestoes}}.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
+        name: 'sessao-iniciada',
+        ref: 'sessao',
+        type: 'announcement',
+        preset: 'readonly',
+        topic: 'Avisos de sessão aberta (megafone)',
+        panel: panel(
+          'Sessão iniciada',
+          'Quando a cidade abre, o anúncio chega aqui marcando @Ping Sessão. Fique de olho.',
+          [
+            sec('Modelo de anúncio', [
+              '**Sessão aberta!**',
+              'Horário: 20h às 23h',
+              'Cidade: Assault RJ',
+              'Como entrar: link na whitelist',
+              'Marque @Ping Sessão em {{cargos}} para ser avisado.',
+            ]),
+          ],
+          'Sessões podem ser encerradas antes do horário sem aviso.',
+          { accent: COLORS.green },
+        ),
+      },
+      {
+        name: 'enquetes',
+        ref: 'enquetes',
+        preset: 'readonly',
+        topic: 'Enquetes oficiais da administração',
+        panel: panel(
+          'Enquetes',
+          'A voz da comunidade decide. Enquetes oficiais sobre o futuro do servidor.',
+          [],
+          'Enquetes duram 48 horas. Votos são públicos.',
+          { accent: COLORS.blue },
+        ),
+      },
+    ],
+  },
+  {
+    name: '📝 Candidaturas',
+    ref: 'cat-candidaturas',
+    preset: 'public',
+    channels: [
+      {
+        name: 'whitelist',
+        ref: 'whitelist',
+        type: 'forum',
+        preset: 'apply',
+        topic: 'Envie sua ficha: nome, idade, personagem, história e tempo de jogo. Leia as regras antes.',
+      },
+      {
+        name: 'candidatura-policia',
+        ref: 'cand-policia',
+        type: 'forum',
+        preset: 'apply',
+        topic: 'Informe a corporação desejada, nome, idade, experiência e motivação.',
+      },
+      {
+        name: 'candidatura-faccao',
+        ref: 'cand-faccao',
+        type: 'forum',
+        preset: 'apply',
+        topic: 'Informe a facção desejada, nome, idade, experiência e a história do personagem.',
+      },
+      {
+        name: 'candidatura-staff',
+        ref: 'cand-staff',
+        type: 'forum',
+        preset: 'apply',
+        topic: 'Informe a área de interesse, disponibilidade, experiência e por que quer entrar na equipe.',
+      },
+    ],
+  },
+  {
+    name: '🎮 Jogo',
+    ref: 'cat-jogo',
+    preset: 'public',
+    channels: [
+      {
+        name: 'procurar-cena',
+        ref: 'procurar-cena',
+        preset: 'public',
+        topic: 'Combine cenas de RP com outros jogadores',
+        panel: panel(
+          'Procurar cena',
+          'Combine cenas com outros jogadores. Use o modelo e marque quem vai participar.',
+          [
+            sec('Modelo', [
+              '**Cena:** assalto / abordagem / resgate / outro',
+              '**Local:**',
+              '**Horário:**',
+              '**Participantes:**',
+              '**Contexto:**',
+            ]),
+          ],
+          'Cenas combinadas aqui não valem como prova — grave em {{clipes}}.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'clipes',
+        ref: 'clipes',
+        preset: 'public',
+        topic: 'Clipes, prints e provas de RP',
+        panel: panel(
+          'Clipes',
+          'Poste clipes de RP, momentos marcantes e provas de ações. Vídeos e prints são bem-vindos.',
+          [],
+          'Provas de denúncia também podem ser enviadas via ticket em {{tickets}}.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'reportar-jogador',
+        ref: 'reportar-jogador',
+        preset: 'report',
+        topic: 'Denúncias com provas (histórico restrito)',
+        panel: panel(
+          'Reportar jogador',
+          'Denuncie com provas. Este canal é de leitura restrita — só a equipe e quem reporta veem o histórico.',
+          [
+            sec('Modelo', [
+              '**Quem está sendo reportado:** (ID ou @ no jogo)',
+              '**O que aconteceu:**',
+              '**Quando:**',
+              '**Provas:** (clipe/print)',
+              '**Testemunhas:**',
+            ]),
+          ],
+          'Denúncias falsas geram punição. Nunca exponha outros jogadores publicamente.',
+          { accent: COLORS.red },
+        ),
+      },
+    ],
+  },
+  {
+    name: '🏚️ Facções',
+    ref: 'cat-faccoes',
+    preset: 'public',
+    channels: [
+      ...FACTIONS.flatMap((faction) => [
+        {
+          name: `${faction.channel}-geral`,
+          ref: `${faction.channel}-geral`,
+          preset: 'org',
+          orgKeys: orgRoleKeys(faction),
+          topic: `Canal interno da organização ${faction.name}`,
+          panel: orgPanel(faction, 'geral'),
+        },
+        {
+          name: `${faction.channel}-avisos`,
+          ref: `${faction.channel}-avisos`,
+          preset: 'org',
+          orgKeys: orgRoleKeys(faction),
+          topic: `Avisos da liderança da organização ${faction.name}`,
+          panel: orgPanel(faction, 'avisos'),
+        },
+        {
+          name: `${faction.channel}-acoes`,
+          ref: `${faction.channel}-acoes`,
+          preset: 'org',
+          orgKeys: orgRoleKeys(faction),
+          topic: `Registro de ações da organização ${faction.name}`,
+          panel: orgPanel(faction, 'acoes'),
+        },
+        {
+          name: faction.channel,
+          type: 'voice',
+          preset: 'org',
+          orgKeys: orgRoleKeys(faction),
+        },
+      ]),
+    ],
+  },
+  {
+    name: '🚔 Corporações',
+    ref: 'cat-corporacoes',
+    preset: 'public',
+    channels: [
+      ...CORPS.flatMap((corp) => [
+        {
+          name: `${corp.channel}-geral`,
+          ref: `${corp.channel}-geral`,
+          preset: 'org',
+          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
+            (key) => ROLES.some((role) => role.key === key),
+          ),
+          topic: `Canal interno da corporação ${corp.name}`,
+          panel: corpPanel(corp, 'geral'),
+        },
+        {
+          name: `${corp.channel}-avisos`,
+          ref: `${corp.channel}-avisos`,
+          preset: 'org',
+          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
+            (key) => ROLES.some((role) => role.key === key),
+          ),
+          topic: `Avisos do comando da ${corp.name}`,
+          panel: corpPanel(corp, 'avisos'),
+        },
+        {
+          name: `${corp.channel}-operacoes`,
+          ref: `${corp.channel}-operacoes`,
+          preset: 'org',
+          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
+            (key) => ROLES.some((role) => role.key === key),
+          ),
+          topic: `Registro de operações da ${corp.name}`,
+          panel: corpPanel(corp, 'operacoes'),
+        },
+        {
+          name: corp.channel,
+          type: 'voice',
+          preset: 'org',
+          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
+            (key) => ROLES.some((role) => role.key === key),
+          ),
+        },
+      ]),
+    ],
+  },
+  {
+    name: '🆘 Suporte',
+    ref: 'cat-suporte',
+    preset: 'public',
+    channels: [
+      {
+        name: 'abrir-ticket',
+        ref: 'tickets',
+        preset: 'readonly',
+        topic: 'Atendimento privado com a equipe',
+        panel: panel(
+          'Atendimento',
+          'Precisa de ajuda? Escolha o setor abaixo e abra um atendimento privado com a equipe.',
+          [],
+          'Não abra tickets sem motivo. O abuso pode gerar punição.',
+          { kind: 'tickets', accent: COLORS.blue },
+        ),
+      },
+      {
+        name: 'denuncias',
+        ref: 'denuncias',
+        preset: 'staff',
+        topic: 'Denúncias recebidas (restrito à equipe)',
+        panel: panel(
+          'Denúncias',
+          'Denúncias recebidas com provas. A equipe analisa e registra as decisões.',
+          [],
+          'Canal restrito à equipe.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: 'recursos',
+        ref: 'recursos',
+        preset: 'staff',
+        topic: 'Pedidos de revisão de punição (restrito à equipe)',
+        panel: panel(
+          'Recursos',
+          'Pedidos de revisão de punição. A direção decide, e a decisão é final.',
+          [],
+          'Canal restrito à equipe.',
+          { accent: COLORS.orange },
+        ),
+      },
+      {
+        name: 'reportar-bug',
+        ref: 'bugs',
+        preset: 'public',
+        topic: 'Reporte bugs do jogo e do servidor',
+        panel: panel(
+          'Reportar bug',
+          'Encontrou um bug? Descreva o problema com detalhes e anexe prints ou vídeos.',
+          [sec('Modelo', ['**O que aconteceu:**', '**Como reproduzir:**', '**Onde:**', '**Provas:**'])],
+          'Bugs explorados de propósito geram banimento.',
+          { accent: COLORS.orange },
+        ),
+      },
+      {
+        name: 'avaliar-staff',
+        ref: 'avaliar-staff',
+        preset: 'public',
+        topic: 'Avalie o atendimento da equipe',
+        panel: panel(
+          'Avaliar equipe',
+          'Sua opinião melhora o servidor. Avalie o atendimento da equipe com sinceridade e respeito.',
+          [sec('Modelo', ['**Membro da equipe:**', '**Atendimento:** (nota de 1 a 5)', '**Comentário:**'])],
+          'Avaliações são lidas pela direção.',
+          { accent: COLORS.gold },
+        ),
+      },
+    ],
+  },
+  {
+    name: '💬 Comunidade',
+    ref: 'cat-comunidade',
+    preset: 'public',
+    channels: [
+      {
+        name: 'geral',
+        ref: 'geral',
+        preset: 'public',
+        topic: 'Conversa geral',
+        panel: panel(
+          'Geral',
+          'O ponto de encontro da cidade. Converse, conheça a comunidade e mantenha o respeito.',
+          [],
+          'Assuntos de suporte ficam em {{tickets}}.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'memes',
+        ref: 'memes',
+        preset: 'public',
+        topic: 'Humor leve e sem preconceito',
+        panel: panel(
+          'Memes',
+          'Humor leve, sem preconceito e sem spam. O melhor da zoeira carioca.',
+          [],
+          'Memes ofensivos ou com conteúdo impróprio são removidos.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'midia',
+        ref: 'midia',
+        preset: 'public',
+        topic: 'Clipes, prints e criação de conteúdo',
+        panel: panel(
+          'Mídia',
+          'Clipes, prints e criações da comunidade. Mostre seu talento.',
+          [],
+          'Créditos aos autores. Conteúdo de terceiros precisa de permissão.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: 'sugestoes',
+        ref: 'sugestoes',
+        preset: 'public',
+        topic: 'Sugestões para o servidor (votação por reação)',
+        panel: panel(
+          'Sugestões',
+          'Ideias para melhorar o Assault RJ. Toda sugestão é lida pela administração.',
+          [
+            sec('Como enviar', [
+              'Explique a ideia em uma mensagem.',
+              'Vote com 👍 ou 👎 nas sugestões dos outros.',
+              'Detalhe o impacto e o motivo.',
+            ]),
+          ],
+          'Sugestões repetidas podem ser mescladas.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
+        name: 'parcerias',
+        ref: 'parcerias',
+        preset: 'public',
+        topic: 'Contato e divulgação de parcerias',
+        panel: panel(
+          'Parcerias',
+          'Propostas de parceria e divulgação. Envie as informações e a equipe responde via ticket.',
+          [sec('Modelo', ['**Projeto:**', '**Link do servidor:**', '**Membros:**', '**Proposta:**'])],
+          'Divulgação sem autorização é proibida.',
+          { accent: COLORS.gold },
+        ),
+      },
+    ],
+  },
+  {
+    name: '🔊 Voz',
+    ref: 'cat-voz',
+    preset: 'public',
+    channels: [
+      { name: 'geral-1', type: 'voice' },
+      { name: 'geral-2', type: 'voice' },
+      { name: 'afk', type: 'voice', ref: 'afk' },
+    ],
+  },
+  {
+    name: '🛡️ Staff',
+    ref: 'cat-equipe',
+    preset: 'staff',
+    channels: [
+      {
+        name: 'chat-staff',
+        preset: 'staff',
+        topic: 'Comunicação interna da equipe',
+        panel: panel(
+          'Chat da equipe',
+          'Comunicação interna. Alinhamentos rápidos, avisos e apoio entre a equipe.',
+          [],
+          'Assuntos sensíveis ficam em {{diretoria}}.',
+          { accent: COLORS.dark },
+        ),
+      },
+      {
+        name: 'avisos-staff',
+        preset: 'staff',
+        topic: 'Avisos e alinhamentos internos',
+        panel: panel(
+          'Avisos da equipe',
+          'Comunicados oficiais para a equipe: escalas, mudanças e diretrizes.',
+          [],
+          'Leia sempre antes de começar o turno.',
+          { accent: COLORS.dark },
+        ),
+      },
+      {
+        name: 'hierarquia-staff',
+        ref: 'hierarquia',
+        preset: 'staff',
+        topic: 'Organograma e diretrizes da equipe',
+        panel: panel(
+          'Hierarquia da equipe',
+          'Organograma e diretrizes. Cada área responde à direção, e a direção responde ao Fundador.',
+          [
+            sec('Estrutura', [
+              '**Fundador** — visão geral e decisões finais.',
+              '**Administração** — gestão do servidor e da equipe.',
+              '**Moderação** — ordem nos canais e punições.',
+              '**Suporte** — atendimentos e tickets.',
+              '**Staff de RP** — suporte no jogo e eventos.',
+            ]),
+          ],
+          'Dúvidas de carreira: fale com sua liderança direta.',
+          { accent: COLORS.dark },
+        ),
+      },
+      {
+        name: 'registro-punicoes',
+        ref: 'registro',
+        preset: 'staff',
+        topic: 'Registro de punições aplicadas',
+        panel: panel(
+          'Registro de punições',
+          'Histórico de advertências, silenciamentos e banimentos aplicados pela equipe.',
+          [],
+          'Toda punição deve ser registrada com motivo e provas.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: 'logs-automod',
+        ref: 'automod-logs',
+        preset: 'staff',
+        topic: 'Alertas de moderação automática',
+        panel: panel(
+          'Logs do AutoMod',
+          'Alertas automáticos de spam, palavras ofensivas, menções em massa e convites.',
+          [],
+          'Canal restrito à equipe.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: 'logs-tickets',
+        ref: 'ticket-logs',
+        preset: 'staff',
+        topic: 'Transcripts de tickets encerrados',
+        panel: panel(
+          'Logs de tickets',
+          'Transcripts e registros de atendimentos encerrados.',
+          [],
+          'Consultas e auditorias usam este histórico.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
+        name: 'diretoria',
+        ref: 'diretoria',
+        preset: 'staff-high',
+        topic: 'Discussões restritas à direção',
+        panel: panel(
+          'Diretoria',
+          'Discussões restritas à direção: estratégia, contratações e casos sensíveis.',
+          [],
+          'Somente Fundador e Administradores.',
+          { accent: COLORS.red },
+        ),
+      },
+      { name: 'sala-staff', type: 'voice', preset: 'staff' },
+    ],
+  },
+  {
+    name: '🎫 Tickets',
+    ref: 'cat-tickets',
+    preset: 'staff',
+    channels: [],
+  },
+];
+
+const CHANNEL_REFS = {};
+const CATEGORY_REFS = {};
+for (const category of CATEGORIES) {
+  if (category.ref) CATEGORY_REFS[category.ref] = category.name;
+  for (const channel of category.channels) {
+    if (channel.ref) CHANNEL_REFS[channel.ref] = channel.name;
+  }
+}
+
+const channelName = (ref) => CHANNEL_REFS[ref] ?? ref;
+
+const LEGACY_CATEGORIES = {};
+const LEGACY_CHANNELS = {};
+const LEGACY_ROLES = {};
+
+module.exports = {
+  GUILD_ID,
+  SERVIDOR,
+  NAME,
+  DESCRIPTION,
+  LAYOUT,
+  ACCENT,
+  COLORS,
+  LINKS,
+  MENU_ROLE_KEYS,
+  AUTO_ROLE_KEY,
+  TICKETS,
+  ROLES,
+  CATEGORIES,
+  STAFF_KEYS,
+  STAFF_SENIOR_KEYS,
+  LEADER_KEYS,
+  TICKET_JUNIOR_KEYS,
+  CHANNEL_REFS,
+  CATEGORY_REFS,
+  channelName,
+  LEGACY_CATEGORIES,
+  LEGACY_CHANNELS,
+  LEGACY_ROLES,
+};

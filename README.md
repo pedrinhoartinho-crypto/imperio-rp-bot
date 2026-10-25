@@ -1,8 +1,42 @@
-# Império RP — Bot de Configuração e Gestão
+# RP Bot — Império RP + Assault RJ
 
-Bot em `discord.js` que entrega o servidor pronto no padrão dos grandes RPs: estrutura completa, cargos com hierarquia e permissões, AutoMod, tickets por setor com transcript, bate-ponto persistente, registro de ausências, comandos slash e menus de cargo. Tudo idempotente — rodar de novo nunca duplica.
+Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: estrutura completa, cargos com hierarquia e permissões, AutoMod, tickets por setor com transcript, bate-ponto persistente, registro de ausências, comandos slash, menus de cargo e painéis informativos. Tudo idempotente — rodar de novo nunca duplica.
+
+O mesmo bot administra **dois servidores**, cada um com a sua configuração:
+
+- **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 62 canais, 42 cargos, fóruns de candidatura, facções/corporações privadas e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Sub-Líder) para identificar lideranças.
+
+## Multi-servidor
+
+- Cada guild tem a sua própria config e o seu próprio espaço de dados (`data/<guildId>/`); o bate-ponto do Império continua em `data/bateponto.json`.
+- Na inicialização, o setup roda para todas as configs registradas; interações de guilds sem config são ignoradas.
+- Para montar/atualizar um servidor específico:
+
+```bash
+SETUP_GUILD=assault npm run setup
+SETUP_GUILD=imperio npm run setup
+```
+
+- `npm run setup` sem `SETUP_GUILD` usa o `GUILD_ID` do `.env` (Império), mantendo o comportamento antigo.
+- Para adicionar um servidor novo: crie `src/configs/novo.js` (mesmo formato), registre em `src/config.js` e rode o setup com `SETUP_GUILD=novo`.
+
+## Assault RJ (Components V2)
+
+Estrutura criada do zero e auditada (0 divergências): 42 cargos, 12 categorias, 62 canais e 48 painéis, sem duplicatas.
+
+- **Chegada** — bem-vindo, cargos (botões de Ping Anúncios, Ping Sessão e Ping Ações)
+- **Informações / Anúncios / Regras** — regras, regras-rp, como-jogar, status, anúncios, atualizações, sessão (megafone), enquetes
+- **Candidaturas** — fóruns de whitelist, polícia, facção e staff (um tópico por candidato)
+- **Jogo** — procurar-cena, clipes e reportar-jogador (histórico restrito)
+- **Facções** — Rodo, Prazeres e Babilônia, cada uma com geral/avisos/ações + voz, visíveis só para os membros da organização e a equipe
+- **Corporações** — PMERJ, PCERJ e BOPE, com geral/avisos/operações + voz, também privadas
+- **Suporte / Comunidade / Voz / Staff / Tickets** — atendimento por botões, canais de conversa, equipe interna e categoria de tickets
+- **Cargos** — Fundador, Administração, Moderação, Suporte e Staff de RP; patentes de PMERJ/PCERJ/BOPE; líder/sub-líder/membro/novato por facção; comunidade, pings e punições
+
+Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
 
 ## Estrutura criada
 
@@ -85,7 +119,7 @@ Toda mensagem em #sugestoes recebe automaticamente os votos 👍 e 👎 do bot.
 Quem entra no servidor recebe o cargo Cidadão automaticamente (autorole) e uma mensagem de boas-vindas no canal #boas-vindas, com menção, avatar do membro e o passo a passo inicial (regras, cargos e atendimento). Quem já estava no servidor também recebe o cargo na próxima inicialização. Requer a Server Members Intent ligada no portal do bot.
 
 ### Painel em todos os canais
-Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), no estilo limpo — título em negrito, sem enfeites, com o nome real do servidor (renomeou o servidor? os painéis se atualizam no próximo reinício) e rodapé `Painel oficial`. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis de versões antigas são atualizados no lugar — sem duplicar nada.
+Nenhum canal fica vazio: cada canal recebe uma mensagem explicativa própria (objetivo, regras, modelos de postagem e canais relacionados), no estilo limpo — título em negrito, sem enfeites, com o nome real do servidor (renomeou o servidor? os painéis se atualizam no próximo reinício) e rodapé `Painel oficial`. No Império os painéis são embeds; no Assault RJ são Components V2. Ao reexecutar o setup, painéis faltantes são publicados de novo e painéis desatualizados são editados no lugar — sem duplicar nada.
 
 ### AutoMod
 - Anti-spam
@@ -137,17 +171,19 @@ GUILD_ID=id_do_servidor
 
 > Para pegar o ID: Discord → Configurações → Avançado → **Modo Desenvolvedor**; clique com o botão direito no servidor → **Copiar ID do Servidor**.
 
-2. Personalize em `src/config.js`: `SERVIDOR`, `LINKS`, cargos, canais, setores de ticket e o menu de cargos.
+2. Personalize em `src/configs/imperio.js` (e/ou `src/configs/assault.js`): `SERVIDOR`, `LINKS`, cargos, canais, setores de ticket e o menu de cargos.
 
 ### 4. Executar
 
 ```bash
 npm install
 
-npm run setup   # monta a estrutura e sai (execução única)
+npm run setup   # monta o servidor do GUILD_ID e sai (execução única)
 
-npm start       # monta, registra os comandos e mantém o bot online
+npm start       # monta todos os servidores configurados, registra os comandos e fica online
 ```
+
+Para o Assault RJ: `SETUP_GUILD=assault npm run setup` (ou `npm run setup:assault`).
 
 ## Deploy grátis no Render (24/7)
 
@@ -174,15 +210,16 @@ Crie um repositório no GitHub e envie o projeto. `node_modules`, `.env` e `data
 - **Punições:** aplique o cargo Mutado (bloqueia escrita, reação e fala) e registre em #registro-punicoes ou use `/advertir`.
 - **Cargo do bot:** mantenha-o no topo da hierarquia do servidor.
 - **Palco:** o canal Eventos (palco) é criado automaticamente quando o bot ativa a Comunidade.
-- **Dados:** o bate-ponto fica em `data/bateponto.json` (fora do controle de versão).
+- **Dados:** o bate-ponto fica em `data/bateponto.json` (Império) e `data/<guildId>/bateponto.json` (demais servidores), fora do controle de versão.
 - **Reexecução:** rodar `npm run setup` de novo completa o que faltar sem duplicar e republica painéis de canal que estiverem faltando.
-- **Atualização de versões antigas:** canais e categorias de versões anteriores (sem emoji ou com nomes antigos) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada.
+- **Atualização de versões antigas:** canais e categorias de versões anteriores (sem emoji ou com nomes antigos) são renomeados e movidos automaticamente para a estrutura nova, e os painéis antigos são atualizados no lugar — sem duplicar nada. O Assault RJ é reconstruído do zero pela própria config; o Império continua com o visual limpo original.
 - **Autorole e boas-vindas:** todo membro que entra recebe o cargo Cidadão e uma mensagem de boas-vindas em #boas-vindas (requer Server Members Intent ligada no portal, veja a Instalação).
 
 ## Personalização rápida
 
 | Onde | O que muda |
 | --- | --- |
+| `src/configs/imperio.js` / `src/configs/assault.js` | Dados de cada servidor |
 | `SERVIDOR` | Nome reserva (os embeds usam o nome real do servidor automaticamente) |
 | `LINKS` | Link do jogo, grupo e Trello |
 | `MENU_ROLE_KEYS` | Cargos com botão em #cargos |
@@ -190,18 +227,23 @@ Crie um repositório no GitHub e envie o projeto. `node_modules`, `.env` e `data
 | `ROLES` | Nome, cor, hierarquia, menção e permissões |
 | `CATEGORIES` | Categorias, canais, tópicos e presets de permissão |
 | `STAFF_KEYS` / `STAFF_SENIOR_KEYS` | Quem é equipe e quem é direção |
+| `LAYOUT` / `ACCENT` | `v2` ativa painéis Components V2; `ACCENT` define a cor de destaque |
 
 ## Arquitetura
 
 ```
 src/
-  config.js      dados: cargos, canais, setores de ticket e listas de equipe
-  store.js       persistência local (bate-ponto)
-  embeds.js      embeds e menus de botão
-  setup.js       criação de cargos, canais, ajustes e AutoMod
-  components.js  interações: cargos, tickets, bate-ponto, ausências e sugestões
-  commands.js    comandos slash (/anunciar, /enquete, /advertir)
-  index.js       conexão e orquestração
+  config.js         registro multi-guild + compatibilidade
+  configs/
+    imperio.js      dados do Império (cargos, canais, painéis em embed)
+    assault.js      dados do Assault RJ (cargos, canais, painéis V2)
+  store.js          persistência local por guild (bate-ponto)
+  embeds.js         embeds e menus de botão (Império)
+  v2.js             renderer Components V2 (Assault)
+  setup.js          criação de cargos, canais, painéis, ajustes e AutoMod
+  components.js     interações: cargos, tickets, bate-ponto, ausências e sugestões
+  commands.js       comandos slash (/anunciar, /enquete, /advertir)
+  index.js          conexão, setup multi-guild e orquestração
 ```
 
 ## Solução de problemas

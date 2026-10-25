@@ -1,5 +1,6 @@
 const {
   ChannelType,
+  MessageFlags,
   Routes,
   PermissionFlagsBits: P,
   GuildVerificationLevel,
@@ -10,19 +11,9 @@ const {
   AutoModerationActionType: Action,
   AutoModerationRuleEventType: Event,
 } = require('discord.js');
-const {
-  SERVIDOR,
-  ROLES,
-  CATEGORIES,
-  AUTO_ROLE_KEY,
-  STAFF_KEYS,
-  STAFF_SENIOR_KEYS,
-  LEADER_KEYS,
-  LEGACY_CATEGORIES,
-  LEGACY_CHANNELS,
-  LEGACY_ROLES,
-} = require('./config');
 const { buildMessage, stylize, LEGACY_TITLES } = require('./embeds');
+const { buildPanel, titleOfPanel, titleOfPayload } = require('./v2');
+const { getConfig } = require('./config');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -31,15 +22,20 @@ const TYPE_BY_NAME = {
   announcement: ChannelType.GuildAnnouncement,
   voice: ChannelType.GuildVoice,
   stage: ChannelType.GuildStageVoice,
+  forum: ChannelType.GuildForum,
 };
 
-function buildOverwrites(preset, ctx) {
+function buildOverwrites(preset, ctx, chCfg = {}) {
+  const { cfg } = ctx;
   const everyone = ctx.guild.roles.everyone.id;
   const roleId = (key) => ctx.roles[key]?.id;
-  const staff = STAFF_KEYS.map(roleId).filter(Boolean);
-  const senior = STAFF_SENIOR_KEYS.map(roleId).filter(Boolean);
-  const junior = STAFF_KEYS.filter((key) => !STAFF_SENIOR_KEYS.includes(key)).map(roleId).filter(Boolean);
-  const leaders = LEADER_KEYS.map(roleId).filter(Boolean);
+  const staff = cfg.STAFF_KEYS.map(roleId).filter(Boolean);
+  const senior = cfg.STAFF_SENIOR_KEYS.map(roleId).filter(Boolean);
+  const junior = cfg.STAFF_KEYS.filter((key) => !cfg.STAFF_SENIOR_KEYS.includes(key))
+    .map(roleId)
+    .filter(Boolean);
+  const leaders = cfg.LEADER_KEYS.map(roleId).filter(Boolean);
+  const org = (chCfg.orgKeys ?? []).map(roleId).filter(Boolean);
   const muted = roleId('mutado');
 
   const allowAll = [
@@ -62,6 +58,7 @@ function buildOverwrites(preset, ctx) {
   ];
   const denyWrite = [P.SendMessages, P.SendMessagesInThreads, P.CreatePublicThreads, P.CreatePrivateThreads];
   const mutedDeny = [...denyWrite, P.AddReactions, P.Speak, P.Stream];
+  const staffThreads = [...allowAll, P.ManageThreads, P.ManageMessages];
 
   const overwrites = [];
   const push = (id, allow = [], deny = []) => {
@@ -87,6 +84,36 @@ function buildOverwrites(preset, ctx) {
       senior.forEach((id) => push(id, allowAll));
       junior.forEach((id) => push(id, [], [P.ViewChannel]));
       break;
+    case 'apply':
+      push(
+        everyone,
+        [
+          P.ViewChannel,
+          P.ReadMessageHistory,
+          P.SendMessages,
+          P.SendMessagesInThreads,
+          P.CreatePublicThreads,
+          P.AddReactions,
+          P.AttachFiles,
+          P.EmbedLinks,
+        ],
+        [P.CreatePrivateThreads],
+      );
+      staff.forEach((id) => push(id, staffThreads));
+      break;
+    case 'report':
+      push(
+        everyone,
+        [P.ViewChannel, P.SendMessages, P.SendMessagesInThreads, P.EmbedLinks, P.AttachFiles, P.AddReactions],
+        [P.ReadMessageHistory],
+      );
+      staff.forEach((id) => push(id, allowAll));
+      break;
+    case 'org':
+      push(everyone, [], [P.ViewChannel]);
+      staff.forEach((id) => push(id, allowAll));
+      org.forEach((id) => push(id, allowAll));
+      break;
     case 'public':
     default:
       break;
@@ -110,19 +137,19 @@ function overwritesMatch(channel, expected) {
 }
 
 async function ensureRoles(ctx) {
-  const { guild } = ctx;
+  const { guild, cfg } = ctx;
   let created = 0;
   let reused = 0;
 
-  for (const cfg of ROLES) {
-    let role = guild.roles.cache.find((r) => r.name === cfg.name);
+  for (const roleCfg of cfg.ROLES) {
+    let role = guild.roles.cache.find((r) => r.name === roleCfg.name);
 
-    if (!role && LEGACY_ROLES[cfg.name]) {
-      for (const legacyName of LEGACY_ROLES[cfg.name]) {
+    if (!role && cfg.LEGACY_ROLES[roleCfg.name]) {
+      for (const legacyName of cfg.LEGACY_ROLES[roleCfg.name]) {
         const legacy = guild.roles.cache.find((r) => r.name.toLowerCase() === legacyName.toLowerCase());
         if (!legacy) continue;
-        role = await legacy.setName(cfg.name).catch(() => legacy);
-        console.log(`[ok] Cargo renomeado: ${legacyName} → ${cfg.name}`);
+        role = await legacy.setName(roleCfg.name).catch(() => legacy);
+        console.log(`[ok] Cargo renomeado: ${legacyName} → ${roleCfg.name}`);
         break;
       }
     }
@@ -130,10 +157,10 @@ async function ensureRoles(ctx) {
     if (role) {
       reused += 1;
       const patch = {};
-      const color = parseInt(cfg.color.slice(1), 16);
-      if (role.color !== color) patch.color = cfg.color;
-      if (role.hoist !== (cfg.hoist ?? false)) patch.hoist = cfg.hoist ?? false;
-      if (role.mentionable !== (cfg.mentionable ?? false)) patch.mentionable = cfg.mentionable ?? false;
+      const color = parseInt(roleCfg.color.slice(1), 16);
+      if (role.color !== color) patch.color = roleCfg.color;
+      if (role.hoist !== (roleCfg.hoist ?? false)) patch.hoist = roleCfg.hoist ?? false;
+      if (role.mentionable !== (roleCfg.mentionable ?? false)) patch.mentionable = roleCfg.mentionable ?? false;
       if (Object.keys(patch).length) {
         try {
           await role.edit(patch);
@@ -143,26 +170,26 @@ async function ensureRoles(ctx) {
         }
       }
     } else {
-      const permissions = (cfg.perms ?? []).reduce((acc, name) => acc | P[name], 0n);
+      const permissions = (roleCfg.perms ?? []).reduce((acc, name) => acc | P[name], 0n);
       role = await guild.roles.create({
-        name: cfg.name,
-        color: cfg.color,
-        hoist: cfg.hoist ?? false,
-        mentionable: cfg.mentionable ?? false,
+        name: roleCfg.name,
+        color: roleCfg.color,
+        hoist: roleCfg.hoist ?? false,
+        mentionable: roleCfg.mentionable ?? false,
         permissions,
-        reason: `${SERVIDOR} · configuração automática`,
+        reason: `${cfg.SERVIDOR} · configuração automática`,
       });
       created += 1;
       console.log(`[ok] Cargo criado: ${role.name}`);
       await wait(400);
     }
 
-    ctx.roles[cfg.key] = role;
+    ctx.roles[roleCfg.key] = role;
   }
 
   const me = await guild.members.fetchMe();
   const botRole = me.roles.highest;
-  const ordered = [botRole, ...ROLES.map((cfg) => ctx.roles[cfg.key])].filter(Boolean);
+  const ordered = [botRole, ...cfg.ROLES.map((roleCfg) => ctx.roles[roleCfg.key])].filter(Boolean);
   const known = new Set(ordered.map((role) => role.id));
   const extras = guild.roles.cache.filter((role) => role.id !== guild.id && !known.has(role.id));
   const all = [...ordered, ...extras.values()];
@@ -187,8 +214,9 @@ async function ensureRoles(ctx) {
 }
 
 async function applyAutorole(ctx) {
-  const cfg = ROLES.find((role) => role.key === AUTO_ROLE_KEY);
-  const role = cfg ? ctx.roles[cfg.key] : null;
+  const { cfg } = ctx;
+  const roleCfg = cfg.ROLES.find((role) => role.key === cfg.AUTO_ROLE_KEY);
+  const role = roleCfg ? ctx.roles[roleCfg.key] : null;
   if (!role) return;
 
   let members;
@@ -211,21 +239,20 @@ async function applyAutorole(ctx) {
 }
 
 async function ensureChannels(ctx) {
-  const { guild } = ctx;
+  const { guild, cfg } = ctx;
   const pendingMessages = [];
   let created = 0;
   let reused = 0;
 
-  for (const catCfg of CATEGORIES) {
+  for (const catCfg of cfg.CATEGORIES) {
     let category = guild.channels.cache.find(
       (c) => c.type === ChannelType.GuildCategory && c.name === catCfg.name,
     );
 
-    if (!category && LEGACY_CATEGORIES[catCfg.name]) {
-      for (const legacyName of LEGACY_CATEGORIES[catCfg.name]) {
+    if (!category && cfg.LEGACY_CATEGORIES[catCfg.name]) {
+      for (const legacyName of cfg.LEGACY_CATEGORIES[catCfg.name]) {
         const legacy = guild.channels.cache.find(
-          (c) =>
-            c.type === ChannelType.GuildCategory && c.name.toLowerCase() === legacyName.toLowerCase(),
+          (c) => c.type === ChannelType.GuildCategory && c.name.toLowerCase() === legacyName.toLowerCase(),
         );
         if (!legacy) continue;
         category = await legacy.setName(catCfg.name).catch(() => legacy);
@@ -240,8 +267,8 @@ async function ensureChannels(ctx) {
       category = await guild.channels.create({
         name: catCfg.name,
         type: ChannelType.GuildCategory,
-        permissionOverwrites: buildOverwrites(catCfg.preset, ctx),
-        reason: `${SERVIDOR} · configuração automática`,
+        permissionOverwrites: buildOverwrites(catCfg.preset, ctx, catCfg),
+        reason: `${cfg.SERVIDOR} · configuração automática`,
       });
       created += 1;
       console.log(`[ok] Categoria criada: ${category.name}`);
@@ -255,13 +282,13 @@ async function ensureChannels(ctx) {
         (c) => c.name === chCfg.name && c.parentId === category.id,
       );
 
-      if (!channel && LEGACY_CHANNELS[chCfg.name]) {
+      if (!channel && cfg.LEGACY_CHANNELS[chCfg.name]) {
         const typeMatches = (c) =>
           type === ChannelType.GuildText || type === ChannelType.GuildAnnouncement
             ? c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement
             : c.type === type;
 
-        for (const legacyName of LEGACY_CHANNELS[chCfg.name]) {
+        for (const legacyName of cfg.LEGACY_CHANNELS[chCfg.name]) {
           const legacy = guild.channels.cache.find(
             (c) => c.name.toLowerCase() === legacyName.toLowerCase() && typeMatches(c),
           );
@@ -284,7 +311,7 @@ async function ensureChannels(ctx) {
         try {
           await guild.client.rest.patch(Routes.channel(channel.id), {
             body: { type: ChannelType.GuildAnnouncement },
-            reason: `${SERVIDOR} · configuração automática`,
+            reason: `${cfg.SERVIDOR} · configuração automática`,
           });
           console.log(`[ok] Canal convertido para anúncios: ${chCfg.name}`);
         } catch (error) {
@@ -297,11 +324,17 @@ async function ensureChannels(ctx) {
           name: chCfg.name,
           type,
           parent: category.id,
-          reason: `${SERVIDOR} · configuração automática`,
+          reason: `${cfg.SERVIDOR} · configuração automática`,
         };
-        if (type === ChannelType.GuildText || type === ChannelType.GuildAnnouncement) options.topic = chCfg.topic;
+        if (
+          type === ChannelType.GuildText ||
+          type === ChannelType.GuildAnnouncement ||
+          type === ChannelType.GuildForum
+        ) {
+          options.topic = chCfg.topic;
+        }
         if (chCfg.userLimit) options.userLimit = chCfg.userLimit;
-        if (preset !== catCfg.preset) options.permissionOverwrites = buildOverwrites(preset, ctx);
+        if (preset !== catCfg.preset) options.permissionOverwrites = buildOverwrites(preset, ctx, chCfg);
 
         try {
           channel = await guild.channels.create(options);
@@ -319,7 +352,7 @@ async function ensureChannels(ctx) {
       } else {
         reused += 1;
         if (preset !== catCfg.preset) {
-          const expected = buildOverwrites(preset, ctx);
+          const expected = buildOverwrites(preset, ctx, chCfg);
           if (!overwritesMatch(channel, expected)) {
             try {
               await channel.permissionOverwrites.set(expected);
@@ -329,7 +362,7 @@ async function ensureChannels(ctx) {
             }
           }
         } else if (channel.permissionOverwrites.cache.size) {
-          const expected = buildOverwrites(catCfg.preset, ctx);
+          const expected = buildOverwrites(catCfg.preset, ctx, catCfg);
           if (overwritesMatch(channel, expected)) {
             try {
               await channel.permissionOverwrites.set([]);
@@ -342,14 +375,17 @@ async function ensureChannels(ctx) {
       }
 
       if (chCfg.ref) ctx.channels[chCfg.ref] = channel.id;
-      if (chCfg.message) {
+      if (!isNew && channel.type === ChannelType.GuildForum) continue;
+      if (chCfg.panel && cfg.LAYOUT === 'v2') {
+        pendingMessages.push({ channel, panel: chCfg.panel, isNew });
+      } else if (chCfg.message) {
         pendingMessages.push({ channel, key: chCfg.message, isNew });
       }
     }
   }
 
-  for (const { channel, key, isNew } of pendingMessages) {
-    const payload = buildMessage(key, ctx);
+  for (const { channel, key, panel: panelDef, isNew } of pendingMessages) {
+    const payload = panelDef ? buildPanel(panelDef, ctx) : buildMessage(key, ctx);
     if (!payload) continue;
 
     try {
@@ -357,32 +393,52 @@ async function ensureChannels(ctx) {
         const recent = await channel.messages.fetch({ limit: 30 }).catch(() => null);
         if (!recent) continue;
 
-        const styledTitle = payload.embeds[0]?.data?.title;
-        const footer = payload.embeds[0]?.data?.footer?.text;
-        const author = payload.embeds[0]?.data?.author?.name;
-        const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
-        const accepted = new Set([styledTitle, plainTitle].filter(Boolean));
-        for (const title of [...accepted]) accepted.add(stylize(title));
-        for (const title of LEGACY_TITLES[key] ?? []) {
-          accepted.add(title);
-          accepted.add(stylize(title));
-        }
         const mine = recent.filter((message) => message.author.id === ctx.botId);
 
-        const current = mine.find((message) =>
-          message.embeds.some(
-            (embed) =>
-              embed.title === styledTitle && embed.footer?.text === footer && embed.author?.name === author,
-          ),
-        );
-        if (current) continue;
+        if (panelDef) {
+          const expected = titleOfPayload(payload);
+          const current = mine.find(
+            (message) =>
+              message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message) === expected,
+          );
+          if (current) continue;
 
-        const outdated = mine.find((message) => message.embeds.some((embed) => accepted.has(embed.title)));
-        if (outdated) {
-          await outdated.edit(payload);
-          console.log(`[ok] Painel atualizado em ${channel.name}.`);
-          await wait(300);
-          continue;
+          const outdated = mine.find(
+            (message) => message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message),
+          );
+          if (outdated) {
+            await outdated.edit({ components: payload.components });
+            console.log(`[ok] Painel atualizado em ${channel.name}.`);
+            await wait(300);
+            continue;
+          }
+        } else {
+          const styledTitle = payload.embeds[0]?.data?.title;
+          const footer = payload.embeds[0]?.data?.footer?.text;
+          const author = payload.embeds[0]?.data?.author?.name;
+          const plainTitle = buildMessage(key, ctx, { plain: true })?.embeds[0]?.data?.title;
+          const accepted = new Set([styledTitle, plainTitle].filter(Boolean));
+          for (const title of [...accepted]) accepted.add(stylize(title));
+          for (const title of LEGACY_TITLES[key] ?? []) {
+            accepted.add(title);
+            accepted.add(stylize(title));
+          }
+
+          const current = mine.find((message) =>
+            message.embeds.some(
+              (embed) =>
+                embed.title === styledTitle && embed.footer?.text === footer && embed.author?.name === author,
+            ),
+          );
+          if (current) continue;
+
+          const outdated = mine.find((message) => message.embeds.some((embed) => accepted.has(embed.title)));
+          if (outdated) {
+            await outdated.edit(payload);
+            console.log(`[ok] Painel atualizado em ${channel.name}.`);
+            await wait(300);
+            continue;
+          }
         }
       }
 
@@ -397,7 +453,7 @@ async function ensureChannels(ctx) {
 }
 
 async function applyGuildSettings(ctx) {
-  const { guild } = ctx;
+  const { guild, cfg } = ctx;
 
   try {
     const base = {
@@ -405,6 +461,8 @@ async function applyGuildSettings(ctx) {
       explicitContentFilter: GuildExplicitContentFilter.AllMembers,
       defaultMessageNotifications: GuildDefaultMessageNotifications.OnlyMentions,
     };
+    if (cfg.NAME && guild.name !== cfg.NAME) base.name = cfg.NAME;
+    if (cfg.DESCRIPTION && guild.description !== cfg.DESCRIPTION) base.description = cfg.DESCRIPTION;
     if (ctx.channels['afk']) {
       base.afkChannel = ctx.channels['afk'];
       base.afkTimeout = 300;
@@ -434,11 +492,11 @@ async function applyGuildSettings(ctx) {
 }
 
 async function applyAutoMod(ctx) {
-  const { guild } = ctx;
+  const { guild, cfg } = ctx;
 
   try {
     const existing = await guild.autoModerationRules.fetch();
-    const staffIds = STAFF_KEYS.map((key) => ctx.roles[key]?.id).filter(Boolean);
+    const staffIds = cfg.STAFF_KEYS.map((key) => ctx.roles[key]?.id).filter(Boolean);
     const alertChannel = ctx.channels['automod-logs'];
 
     const rules = [
@@ -472,7 +530,7 @@ async function applyAutoMod(ctx) {
         enabled: true,
         exemptRoles: staffIds,
         exemptChannels: [],
-        reason: `${SERVIDOR} · configuração automática`,
+        reason: `${cfg.SERVIDOR} · configuração automática`,
       };
       if (rule.triggerMetadata) options.triggerMetadata = rule.triggerMetadata;
 
@@ -491,7 +549,10 @@ async function applyAutoMod(ctx) {
   }
 }
 
-async function setupGuild(client, guild) {
+async function setupGuild(client, guild, config) {
+  const cfg = config ?? getConfig(guild.id);
+  if (!cfg) throw new Error(`Nenhuma configuração encontrada para o servidor ${guild.id}.`);
+
   await guild.roles.fetch();
   await guild.channels.fetch();
 
@@ -500,8 +561,8 @@ async function setupGuild(client, guild) {
     throw new Error('O bot precisa das permissões "Gerenciar Cargos" e "Gerenciar Canais" (ou Administrador).');
   }
 
-  const ctx = { guild, botId: client.user.id, roles: {}, channels: {} };
-  console.log(`[info] Preparando "${SERVIDOR}" em: ${guild.name}`);
+  const ctx = { guild, cfg, botId: client.user.id, roles: {}, channels: {} };
+  console.log(`[info] Preparando "${cfg.SERVIDOR}" em: ${guild.name}`);
 
   const roles = await ensureRoles(ctx);
   await applyAutorole(ctx);

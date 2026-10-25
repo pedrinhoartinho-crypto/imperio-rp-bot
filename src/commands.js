@@ -1,8 +1,5 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-} = require('discord.js');
-const { channelName } = require('./config');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { getConfig } = require('./config');
 const { isStaffMember, replyEphemeral } = require('./components');
 
 const COMMANDS = [
@@ -43,14 +40,17 @@ const COMMANDS = [
 ];
 
 async function handleAnunciar(interaction) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'Apenas membros da equipe podem publicar anúncios.');
     return;
   }
 
-  const channel = interaction.guild.channels.cache.find((c) => c.name === channelName('anuncios'));
+  const channel = interaction.guild.channels.cache.find((c) => c.name === cfg.channelName('anuncios'));
   if (!channel) {
-    await replyEphemeral(interaction, `Canal #${channelName('anuncios')} não encontrado. Rode o setup para criar a estrutura.`);
+    await replyEphemeral(interaction, `Canal #${cfg.channelName('anuncios')} não encontrado. Rode o setup para criar a estrutura.`);
     return;
   }
 
@@ -59,14 +59,15 @@ async function handleAnunciar(interaction) {
   const ping = interaction.options.getBoolean('ping') ?? true;
 
   const embed = new EmbedBuilder()
-    .setColor(0x5865f2)
+    .setColor(cfg.ACCENT ?? 0x5865f2)
     .setTitle(titulo)
     .setDescription(mensagem)
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
     .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? undefined })
     .setTimestamp();
 
-  const pingRole = interaction.guild.roles.cache.find((role) => role.name === 'Ping Anúncios');
+  const pingName = cfg.ROLES.find((role) => role.key === 'ping_anuncios')?.name;
+  const pingRole = interaction.guild.roles.cache.find((role) => role.name === pingName);
   await channel.send({
     content: ping && pingRole ? `<@&${pingRole.id}>` : undefined,
     embeds: [embed],
@@ -76,14 +77,17 @@ async function handleAnunciar(interaction) {
 }
 
 async function handleEnquete(interaction) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'Apenas membros da equipe podem criar enquetes.');
     return;
   }
 
-  const channel = interaction.guild.channels.cache.find((c) => c.name === channelName('enquetes'));
+  const channel = interaction.guild.channels.cache.find((c) => c.name === cfg.channelName('enquetes'));
   if (!channel) {
-    await replyEphemeral(interaction, `Canal #${channelName('enquetes')} não encontrado. Rode o setup para criar a estrutura.`);
+    await replyEphemeral(interaction, `Canal #${cfg.channelName('enquetes')} não encontrado. Rode o setup para criar a estrutura.`);
     return;
   }
 
@@ -117,7 +121,10 @@ async function handleEnquete(interaction) {
 }
 
 async function handleAdvertir(interaction) {
-  if (!isStaffMember(interaction.member)) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
     await replyEphemeral(interaction, 'Apenas membros da equipe podem aplicar advertências.');
     return;
   }
@@ -128,7 +135,8 @@ async function handleAdvertir(interaction) {
     return;
   }
 
-  const role = interaction.guild.roles.cache.find((r) => r.name === 'Advertido');
+  const roleName = cfg.ROLES.find((r) => r.key === 'advertido')?.name;
+  const role = interaction.guild.roles.cache.find((r) => r.name === roleName);
   if (!role) {
     await replyEphemeral(interaction, 'Cargo "Advertido" não encontrado. Rode o setup para criar a estrutura.');
     return;
@@ -147,11 +155,11 @@ async function handleAdvertir(interaction) {
     )
     .setTimestamp();
 
-  const registro = interaction.guild.channels.cache.find((c) => c.name === channelName('registro'));
+  const registro = interaction.guild.channels.cache.find((c) => c.name === cfg.channelName('registro'));
   if (registro) await registro.send({ embeds: [embed] }).catch(() => {});
 
   await alvo
-    .send(`Você recebeu uma advertência no ${interaction.guild.name}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #${channelName('tickets')}.`)
+    .send(`Você recebeu uma advertência no ${interaction.guild.name}.\nMotivo: ${motivo}\nDúvidas ou revisão: abra um ticket em #${cfg.channelName('tickets')}.`)
     .catch(() => {});
 
   await replyEphemeral(interaction, `Advertência aplicada a ${alvo}.`);
@@ -173,7 +181,7 @@ async function registerCommands(guild) {
 }
 
 async function handleCommand(interaction) {
-  if (!interaction.guild) return;
+  if (!interaction.guild || !getConfig(interaction.guildId)) return;
   const handler = HANDLERS[interaction.commandName];
   if (!handler) return;
 
