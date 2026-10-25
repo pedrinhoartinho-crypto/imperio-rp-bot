@@ -122,11 +122,29 @@ function titleOfPayload(payload) {
   return texts.length ? clean(texts[0]) : null;
 }
 
+function collectAccent(node) {
+  if (!node || typeof node !== 'object') return null;
+  if (typeof node.accent_color === 'number') return node.accent_color;
+  for (const child of node.components ?? []) {
+    const found = collectAccent(child);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+function panelFingerprint(source) {
+  const json = typeof source?.toJSON === 'function' ? source.toJSON() : source;
+  const list = Array.isArray(json?.components) ? json.components : [];
+  const components = list.map((component) => (typeof component?.toJSON === 'function' ? component.toJSON() : component));
+  const texts = collectTexts({ components });
+  return `${collectAccent({ components }) ?? 'none'}|${texts.join('\n')}`;
+}
+
 function buildV2JoinWelcome(member, ctx) {
   const rules = ctx.channels?.regras ? `<#${ctx.channels.regras}>` : 'as regras';
   const commands = ctx.channels?.cargos ? `<#${ctx.channels.cargos}>` : 'os cargos';
   const howto = ctx.channels?.['como-jogar'] ? `<#${ctx.channels['como-jogar']}>` : 'como jogar';
-  const whitelist = ctx.channels?.whitelist ? `<#${ctx.channels.whitelist}>` : 'a whitelist';
+  const sessions = ctx.channels?.sessao ? `<#${ctx.channels.sessao}>` : 'as sessões';
   const ticket = ctx.channels?.tickets ? `<#${ctx.channels.tickets}>` : 'o suporte';
 
   const container = new ContainerBuilder()
@@ -142,7 +160,7 @@ function buildV2JoinWelcome(member, ctx) {
     .addSeparatorComponents(new SeparatorBuilder())
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `### Primeiros passos\n1. Leia ${rules} e as regras de RP.\n2. Escolha seus avisos em ${commands}.\n3. Veja ${howto}.\n4. Envie sua ficha em ${whitelist}.`,
+        `### Primeiros passos\n1. Leia ${rules} e as regras de RP.\n2. Escolha seus avisos em ${commands}.\n3. Veja ${howto}.\n4. Acompanhe ${sessions} para saber quando a cidade abre.`,
       ),
     )
     .addSeparatorComponents(new SeparatorBuilder())
@@ -158,4 +176,4 @@ function buildV2JoinWelcome(member, ctx) {
   return { flags: MessageFlags.IsComponentsV2, components: [container] };
 }
 
-module.exports = { buildPanel, buildV2JoinWelcome, titleOfPanel, titleOfPayload, tokenize };
+module.exports = { buildPanel, buildV2JoinWelcome, titleOfPanel, titleOfPayload, panelFingerprint, tokenize };

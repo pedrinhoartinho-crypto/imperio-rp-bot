@@ -65,8 +65,9 @@ const TICKETS = [
   },
 ];
 
-const RECRUIT_KEYS = ['rodo', 'prazeres', 'babilonia', 'pmerj', 'pcerj', 'bope'];
-const RECRUIT_TAGS = ['Rodo', 'Prazeres', 'Babilônia', 'PMERJ', 'PCERJ', 'BOPE'];
+const FACTION_KEYS = ['rodo', 'prazeres', 'babilonia'];
+const CORP_KEYS = ['pmerj', 'pcerj', 'bope'];
+const LEADER_KEYS = [...FACTION_KEYS, ...CORP_KEYS];
 
 const ROLES = [
   {
@@ -247,8 +248,6 @@ const ROLES = [
   },
 ];
 
-const LEADER_KEYS = [...RECRUIT_KEYS];
-
 const panel = (title, intro, sections = [], note, extra = {}) => ({ title, intro, sections, note, ...extra });
 const sec = (label, lines) => ({ label, lines });
 
@@ -352,7 +351,7 @@ const CATEGORIES = [
             ]),
             sec('Facções e corporações', [
               'Cada organização tem hierarquia e regras próprias no servidor dela.',
-              'Recrutamentos oficiais saem em {{recrutamento}} — desconfie de qualquer outro lugar.',
+              'Recrutamentos oficiais saem em {{rec-faccao}} e {{rec-corporacao}} — desconfie de qualquer outro lugar.',
               'A vida de um personagem tem peso: evite morrer e voltar como se nada tivesse acontecido.',
             ]),
           ],
@@ -370,10 +369,10 @@ const CATEGORIES = [
           'Em poucos passos você entra na cidade. Leva menos de cinco minutos.',
           [
             sec('Passo a passo', [
-              '1. Envie sua ficha em {{whitelist}} e aguarde a aprovação.',
-              '2. Entre no jogo pelo link oficial disponível na whitelist.',
-              '3. Escolha um personagem e comece sua história.',
-              '4. Acompanhe {{sessao}} para saber quando a cidade está aberta.',
+              '1. Leia as {{regras}} e as {{rp-regras}} — é rápido e evita punição.',
+              '2. Escolha seus avisos em {{cargos}}.',
+              '3. Acompanhe {{status}} e {{sessao}} para saber quando a cidade abre.',
+              '4. Entre no jogo pelo link divulgado nos anúncios.',
               '5. Use {{procurar-cena}} para encontrar RP com outros jogadores.',
             ]),
             sec('Dentro do jogo', [
@@ -454,7 +453,7 @@ const CATEGORIES = [
               '**Sessão aberta!**',
               'Horário: 20h às 23h',
               'Cidade: Assault RJ',
-              'Como entrar: link na whitelist',
+              'Como entrar: link divulgado nos anúncios',
               'Marque @Ping Sessão em {{cargos}} para ser avisado.',
             ]),
           ],
@@ -478,54 +477,53 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '「📝」CANDIDATURAS',
-    ref: 'cat-candidaturas',
-    preset: 'public',
-    channels: [
-      {
-        name: '✅・whitelist',
-        ref: 'whitelist',
-        type: 'forum',
-        preset: 'apply',
-        topic: 'Envie sua ficha: nome, idade, personagem, história e tempo de jogo. Leia as regras antes.',
-      },
-      {
-        name: '🚔・candidatura-policia',
-        ref: 'cand-policia',
-        type: 'forum',
-        preset: 'apply',
-        topic: 'Informe a corporação desejada, nome, idade, experiência e motivação.',
-      },
-      {
-        name: '🏚️・candidatura-faccao',
-        ref: 'cand-faccao',
-        type: 'forum',
-        preset: 'apply',
-        topic: 'Informe a facção desejada, nome, idade, experiência e a história do personagem.',
-      },
-      {
-        name: '🛡️・candidatura-staff',
-        ref: 'cand-staff',
-        type: 'forum',
-        preset: 'apply',
-        topic: 'Informe a área de interesse, disponibilidade, experiência e por que quer entrar na equipe.',
-      },
-    ],
-  },
-  {
     name: '「🏙️」RECRUTAMENTO',
     ref: 'cat-recrutamento',
     preset: 'public',
     channels: [
       {
-        name: '📢・recrutamento',
-        ref: 'recrutamento',
-        type: 'forum',
-        preset: 'recruit',
-        orgKeys: RECRUIT_KEYS,
-        tags: RECRUIT_TAGS,
-        rateLimit: 60,
-        topic: 'Facções e corporações anunciam vagas aqui. Cada anúncio é um tópico com a tag da organização.',
+        name: '🏚️・facções',
+        ref: 'rec-faccao',
+        preset: 'leaders',
+        orgKeys: FACTION_KEYS,
+        topic: 'Anúncios de recrutamento das facções (só líderes publicam)',
+        panel: panel(
+          'Recrutamento — Facções',
+          'Canal reservado às lideranças de **Rodo**, **Prazeres** e **Babilônia**. Só a liderança publica; todo mundo lê.',
+          [
+            sec('Modelo de anúncio', [
+              '**Facção:**',
+              '**Vagas:**',
+              '**Requisitos:**',
+              '**Como participar:** entre no servidor da facção citado no anúncio.',
+              '**Responsável:**',
+            ]),
+          ],
+          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada facção.',
+          { accent: COLORS.red },
+        ),
+      },
+      {
+        name: '🚔・corporações',
+        ref: 'rec-corporacao',
+        preset: 'leaders',
+        orgKeys: CORP_KEYS,
+        topic: 'Anúncios de recrutamento das corporações (só comandos publicam)',
+        panel: panel(
+          'Recrutamento — Corporações',
+          'Canal reservado aos comandos da **PMERJ**, **PCERJ** e **BOPE**. Só a liderança publica; todo mundo lê.',
+          [
+            sec('Modelo de anúncio', [
+              '**Corporação:**',
+              '**Vagas:**',
+              '**Requisitos:**',
+              '**Como participar:** entre no servidor da corporação citado no anúncio.',
+              '**Responsável:**',
+            ]),
+          ],
+          'Anúncios fora do modelo podem ser removidos. Candidaturas são tratadas no servidor de cada corporação.',
+          { accent: COLORS.dark },
+        ),
       },
     ],
   },

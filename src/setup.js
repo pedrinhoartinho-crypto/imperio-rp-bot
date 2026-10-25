@@ -12,7 +12,7 @@ const {
   AutoModerationRuleEventType: Event,
 } = require('discord.js');
 const { buildMessage, stylize, LEGACY_TITLES } = require('./embeds');
-const { buildPanel, titleOfPanel, titleOfPayload } = require('./v2');
+const { buildPanel, titleOfPanel, titleOfPayload, panelFingerprint } = require('./v2');
 const { getConfig } = require('./config');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -72,7 +72,7 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
     case 'leaders':
       push(everyone, [P.ViewChannel, P.ReadMessageHistory, P.AddReactions], denyWrite);
       staff.forEach((id) => push(id, allowAll));
-      leaders.forEach((id) => push(id, allowAll));
+      (chCfg.orgKeys ? org : leaders).forEach((id) => push(id, allowAll));
       break;
     case 'staff':
       push(everyone, [], [P.ViewChannel]);
@@ -423,17 +423,19 @@ async function ensureChannels(ctx) {
 
         if (panelDef) {
           const expected = titleOfPayload(payload);
+          const fingerprint = panelFingerprint(payload);
           const current = mine.find(
             (message) =>
               message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message) === expected,
           );
-          if (current) continue;
+          if (current && panelFingerprint(current) === fingerprint) continue;
 
           const outdated = mine.find(
             (message) => message.flags.has(MessageFlags.IsComponentsV2) && titleOfPanel(message),
           );
-          if (outdated) {
-            await outdated.edit({ components: payload.components });
+          const target = current ?? outdated;
+          if (target) {
+            await target.edit({ components: payload.components });
             console.log(`[ok] Painel atualizado em ${channel.name}.`);
             await wait(300);
             continue;
