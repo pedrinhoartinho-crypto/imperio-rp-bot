@@ -63,50 +63,10 @@ const TICKETS = [
     color: 0xd4af37,
     instructions: 'Envie o nome do projeto, link do servidor, número de membros e a proposta.',
   },
-  {
-    key: 'lideranca',
-    label: 'Liderança',
-    summary: 'Verificação de líderes',
-    title: 'Atendimento — Liderança',
-    color: 0x1f3a5f,
-    instructions:
-      'Setor para líderes e sub-líderes de facções e corporações. Informe a organização e o responsável.',
-  },
 ];
 
-const FACTIONS = [
-  { key: 'rodo', name: 'Rodo', channel: 'rodo', palette: ['#922B21', '#A93226', '#C0392B', '#CD6155'] },
-  { key: 'prazeres', name: 'Prazeres', channel: 'prazeres', palette: ['#7B241C', '#922B21', '#A93226', '#C0392B'] },
-  { key: 'babilonia', name: 'Babilônia', channel: 'babilonia', palette: ['#A04000', '#B9770E', '#CA6F1E', '#D68910'] },
-];
-
-const FACTIONS_RANKS = ['Líder', 'Sub-Líder', 'Membro', 'Novato'];
-
-const CORPS = [
-  {
-    key: 'pmerj',
-    name: 'PMERJ',
-    channel: 'pmerj',
-    palette: ['#1B4F72', '#2874A6', '#2E86C1', '#5499C7', '#7FB3D5'],
-    ranks: ['Coronel', 'Tenente', 'Sargento', 'Cabo', 'Soldado'],
-  },
-  {
-    key: 'pcerj',
-    name: 'PCERJ',
-    channel: 'pcerj',
-    palette: ['#154360', '#1A5276', '#1F618D', '#2471A3'],
-    ranks: ['Delegado', 'Escrivão', 'Investigador', 'Agente'],
-  },
-  {
-    key: 'bope',
-    name: 'BOPE',
-    channel: 'bope',
-    palette: ['#0B0B0B', '#151515', '#1F1F1F', '#292929', '#333333'],
-    ranks: ['Comandante', 'Capitão', 'Tenente', 'Sargento', 'Soldado de Elite'],
-  },
-];
-
-const orgRoleKeys = (faction) => FACTIONS_RANKS.map((rank, index) => `${faction.key}_${index}`);
+const RECRUIT_KEYS = ['rodo', 'prazeres', 'babilonia', 'pmerj', 'pcerj', 'bope'];
+const RECRUIT_TAGS = ['Rodo', 'Prazeres', 'Babilônia', 'PMERJ', 'PCERJ', 'BOPE'];
 
 const ROLES = [
   {
@@ -149,26 +109,54 @@ const ROLES = [
     mentionable: false,
     perms: [],
   },
-  ...CORPS.flatMap((corp) =>
-    corp.ranks.map((rank, index) => ({
-      key: `${corp.key}_${index}`,
-      name: `${corp.name} · ${rank}`,
-      color: corp.palette[index],
-      hoist: index === 0,
-      mentionable: false,
-      perms: [],
-    })),
-  ),
-  ...FACTIONS.flatMap((faction) =>
-    FACTIONS_RANKS.map((rank, index) => ({
-      key: `${faction.key}_${index}`,
-      name: `${rank} do ${faction.name}`,
-      color: faction.palette[index],
-      hoist: index === 0,
-      mentionable: index === 0,
-      perms: [],
-    })),
-  ),
+  {
+    key: 'pmerj',
+    name: 'Comando PMERJ',
+    color: '#1B4F72',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'pcerj',
+    name: 'Comando PCERJ',
+    color: '#154360',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'bope',
+    name: 'Comando BOPE',
+    color: '#111111',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'rodo',
+    name: 'Líder do Rodo',
+    color: '#922B21',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'prazeres',
+    name: 'Líder dos Prazeres',
+    color: '#7B241C',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'babilonia',
+    name: 'Líder da Babilônia',
+    color: '#A04000',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
   {
     key: 'membro',
     name: 'Cidadão',
@@ -259,75 +247,19 @@ const ROLES = [
   },
 ];
 
-const LEADER_KEYS = FACTIONS.flatMap((faction) => [`${faction.key}_0`, `${faction.key}_1`]);
+const LEADER_KEYS = [...RECRUIT_KEYS];
 
 const panel = (title, intro, sections = [], note, extra = {}) => ({ title, intro, sections, note, ...extra });
 const sec = (label, lines) => ({ label, lines });
 
-const orgPanel = (faction, kind) => {
-  if (kind === 'avisos') {
-    return panel(
-      `${faction.name} · Avisos`,
-      `Comunicados da liderança do **${faction.name}** para todos os membros.`,
-      [sec('Modelo de aviso', ['**Assunto:**', '**Data e horário:**', '**O que muda:**', '**Responsável:**'])],
-      'Somente liderança e sub-liderança publicam aqui.',
-      { accent: COLORS.red },
-    );
-  }
-  if (kind === 'acoes') {
-    return panel(
-      `${faction.name} · Ações`,
-      `Registro das ações do **${faction.name}**: assaltos, alianças, territórios e movimentações.`,
-      [sec('Modelo', ['**Tipo de ação:**', '**Local:**', '**Participantes:**', '**Resultado:**', '**Provas:**'])],
-      'Toda ação relevante deve ser registrada aqui.',
-      { accent: COLORS.orange },
-    );
-  }
-  return panel(
-    `${faction.name} · Geral`,
-    `Canal interno da organização **${faction.name}**. Converse, combine ações e mantenha o respeito entre os membros.`,
-    [sec('Acordos', ['Use este canal para alinhar o dia a dia.', 'Decisões importantes devem ser registradas nos avisos.'])],
-    'Canal visível apenas para membros da organização e da equipe.',
-    { accent: COLORS.dark },
-  );
-};
-
-const corpPanel = (corp, kind) => {
-  if (kind === 'avisos') {
-    return panel(
-      `${corp.name} · Avisos`,
-      `Comunicados do comando da **${corp.name}** para todos os integrantes.`,
-      [sec('Modelo de aviso', ['**Assunto:**', '**Data e horário:**', '**O que muda:**', '**Responsável:**'])],
-      'Somente o comando publica neste canal.',
-      { accent: COLORS.dark },
-    );
-  }
-  if (kind === 'operacoes') {
-    return panel(
-      `${corp.name} · Operações`,
-      `Registro de operações da **${corp.name}**: abordagens, ocorrências e ações conjuntas.`,
-      [sec('Modelo', ['**Tipo de operação:**', '**Local:**', '**Equipe:**', '**Resultado:**', '**Provas:**'])],
-      'Toda operação relevante deve ser registrada aqui.',
-      { accent: COLORS.blue },
-    );
-  }
-  return panel(
-    `${corp.name} · Geral`,
-    `Canal interno da corporação **${corp.name}**. Alinhe o turno, tire dúvidas e mantenha a disciplina.`,
-    [sec('Dia a dia', ['Use este canal para o dia a dia da corporação.', 'Escalas e mudanças ficam nos avisos.'])],
-    'Canal visível apenas para integrantes da corporação e da equipe.',
-    { accent: COLORS.dark },
-  );
-};
-
 const CATEGORIES = [
   {
-    name: '👋 Chegada',
+    name: '「👋」CHEGADA',
     ref: 'cat-chegada',
     preset: 'readonly',
     channels: [
       {
-        name: 'bem-vindo',
+        name: '👋・bem-vindo',
         ref: 'bem-vindo',
         preset: 'readonly',
         topic: 'Boas-vindas e primeiros passos',
@@ -347,7 +279,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'cargos',
+        name: '🎭・cargos',
         ref: 'cargos',
         preset: 'readonly',
         topic: 'Escolha seus cargos de notificação',
@@ -362,12 +294,12 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '📜 Informações',
+    name: '「📌」INFORMAÇÕES',
     ref: 'cat-informacoes',
     preset: 'readonly',
     channels: [
       {
-        name: 'regras',
+        name: '📜・regras',
         ref: 'regras',
         preset: 'readonly',
         topic: 'Regras do servidor',
@@ -397,7 +329,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'regras-rp',
+        name: '🎲・regras-rp',
         ref: 'rp-regras',
         preset: 'readonly',
         topic: 'Regras de roleplay',
@@ -419,8 +351,8 @@ const CATEGORIES = [
               'Ataques, operações e alianças precisam de justificativa e registro.',
             ]),
             sec('Facções e corporações', [
-              'Cada organização tem hierarquia e canal próprio.',
-              'Entradas e saídas de membros passam pela liderança.',
+              'Cada organização tem hierarquia e regras próprias no servidor dela.',
+              'Recrutamentos oficiais saem em {{recrutamento}} — desconfie de qualquer outro lugar.',
               'A vida de um personagem tem peso: evite morrer e voltar como se nada tivesse acontecido.',
             ]),
           ],
@@ -429,7 +361,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'como-jogar',
+        name: '🧭・como-jogar',
         ref: 'como-jogar',
         preset: 'readonly',
         topic: 'Guia para começar a jogar',
@@ -455,7 +387,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'status-servidor',
+        name: '🟢・status-servidor',
         ref: 'status',
         type: 'announcement',
         preset: 'readonly',
@@ -477,12 +409,12 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '📢 Anúncios',
+    name: '「📢」ANÚNCIOS',
     ref: 'cat-anuncios',
     preset: 'readonly',
     channels: [
       {
-        name: 'anuncios-gerais',
+        name: '📣・anuncios-gerais',
         ref: 'anuncios',
         preset: 'readonly',
         topic: 'Comunicados oficiais da administração',
@@ -495,7 +427,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'atualizações',
+        name: '🔄・atualizações',
         ref: 'atualizacoes',
         type: 'announcement',
         preset: 'readonly',
@@ -509,7 +441,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'sessao-iniciada',
+        name: '📡・sessao-iniciada',
         ref: 'sessao',
         type: 'announcement',
         preset: 'readonly',
@@ -531,7 +463,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'enquetes',
+        name: '📊・enquetes',
         ref: 'enquetes',
         preset: 'readonly',
         topic: 'Enquetes oficiais da administração',
@@ -546,33 +478,33 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '📝 Candidaturas',
+    name: '「📝」CANDIDATURAS',
     ref: 'cat-candidaturas',
     preset: 'public',
     channels: [
       {
-        name: 'whitelist',
+        name: '✅・whitelist',
         ref: 'whitelist',
         type: 'forum',
         preset: 'apply',
         topic: 'Envie sua ficha: nome, idade, personagem, história e tempo de jogo. Leia as regras antes.',
       },
       {
-        name: 'candidatura-policia',
+        name: '🚔・candidatura-policia',
         ref: 'cand-policia',
         type: 'forum',
         preset: 'apply',
         topic: 'Informe a corporação desejada, nome, idade, experiência e motivação.',
       },
       {
-        name: 'candidatura-faccao',
+        name: '🏚️・candidatura-faccao',
         ref: 'cand-faccao',
         type: 'forum',
         preset: 'apply',
         topic: 'Informe a facção desejada, nome, idade, experiência e a história do personagem.',
       },
       {
-        name: 'candidatura-staff',
+        name: '🛡️・candidatura-staff',
         ref: 'cand-staff',
         type: 'forum',
         preset: 'apply',
@@ -581,12 +513,29 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '🎮 Jogo',
+    name: '「🏙️」RECRUTAMENTO',
+    ref: 'cat-recrutamento',
+    preset: 'public',
+    channels: [
+      {
+        name: '📢・recrutamento',
+        ref: 'recrutamento',
+        type: 'forum',
+        preset: 'recruit',
+        orgKeys: RECRUIT_KEYS,
+        tags: RECRUIT_TAGS,
+        rateLimit: 60,
+        topic: 'Facções e corporações anunciam vagas aqui. Cada anúncio é um tópico com a tag da organização.',
+      },
+    ],
+  },
+  {
+    name: '「🎮」JOGO',
     ref: 'cat-jogo',
     preset: 'public',
     channels: [
       {
-        name: 'procurar-cena',
+        name: '🎬・procurar-cena',
         ref: 'procurar-cena',
         preset: 'public',
         topic: 'Combine cenas de RP com outros jogadores',
@@ -607,7 +556,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'clipes',
+        name: '🎞️・clipes',
         ref: 'clipes',
         preset: 'public',
         topic: 'Clipes, prints e provas de RP',
@@ -620,7 +569,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'reportar-jogador',
+        name: '🚨・reportar-jogador',
         ref: 'reportar-jogador',
         preset: 'report',
         topic: 'Denúncias com provas (histórico restrito)',
@@ -643,98 +592,12 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '🏚️ Facções',
-    ref: 'cat-faccoes',
-    preset: 'public',
-    channels: [
-      ...FACTIONS.flatMap((faction) => [
-        {
-          name: `${faction.channel}-geral`,
-          ref: `${faction.channel}-geral`,
-          preset: 'org',
-          orgKeys: orgRoleKeys(faction),
-          topic: `Canal interno da organização ${faction.name}`,
-          panel: orgPanel(faction, 'geral'),
-        },
-        {
-          name: `${faction.channel}-avisos`,
-          ref: `${faction.channel}-avisos`,
-          preset: 'org',
-          orgKeys: orgRoleKeys(faction),
-          topic: `Avisos da liderança da organização ${faction.name}`,
-          panel: orgPanel(faction, 'avisos'),
-        },
-        {
-          name: `${faction.channel}-acoes`,
-          ref: `${faction.channel}-acoes`,
-          preset: 'org',
-          orgKeys: orgRoleKeys(faction),
-          topic: `Registro de ações da organização ${faction.name}`,
-          panel: orgPanel(faction, 'acoes'),
-        },
-        {
-          name: faction.channel,
-          type: 'voice',
-          preset: 'org',
-          orgKeys: orgRoleKeys(faction),
-        },
-      ]),
-    ],
-  },
-  {
-    name: '🚔 Corporações',
-    ref: 'cat-corporacoes',
-    preset: 'public',
-    channels: [
-      ...CORPS.flatMap((corp) => [
-        {
-          name: `${corp.channel}-geral`,
-          ref: `${corp.channel}-geral`,
-          preset: 'org',
-          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
-            (key) => ROLES.some((role) => role.key === key),
-          ),
-          topic: `Canal interno da corporação ${corp.name}`,
-          panel: corpPanel(corp, 'geral'),
-        },
-        {
-          name: `${corp.channel}-avisos`,
-          ref: `${corp.channel}-avisos`,
-          preset: 'org',
-          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
-            (key) => ROLES.some((role) => role.key === key),
-          ),
-          topic: `Avisos do comando da ${corp.name}`,
-          panel: corpPanel(corp, 'avisos'),
-        },
-        {
-          name: `${corp.channel}-operacoes`,
-          ref: `${corp.channel}-operacoes`,
-          preset: 'org',
-          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
-            (key) => ROLES.some((role) => role.key === key),
-          ),
-          topic: `Registro de operações da ${corp.name}`,
-          panel: corpPanel(corp, 'operacoes'),
-        },
-        {
-          name: corp.channel,
-          type: 'voice',
-          preset: 'org',
-          orgKeys: [`${corp.key}_0`, `${corp.key}_1`, `${corp.key}_2`, `${corp.key}_3`, `${corp.key}_4`].filter(
-            (key) => ROLES.some((role) => role.key === key),
-          ),
-        },
-      ]),
-    ],
-  },
-  {
-    name: '🆘 Suporte',
+    name: '「🆘」SUPORTE',
     ref: 'cat-suporte',
     preset: 'public',
     channels: [
       {
-        name: 'abrir-ticket',
+        name: '🎫・abrir-ticket',
         ref: 'tickets',
         preset: 'readonly',
         topic: 'Atendimento privado com a equipe',
@@ -747,7 +610,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'denuncias',
+        name: '📩・denuncias',
         ref: 'denuncias',
         preset: 'staff',
         topic: 'Denúncias recebidas (restrito à equipe)',
@@ -760,7 +623,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'recursos',
+        name: '⚖️・recursos',
         ref: 'recursos',
         preset: 'staff',
         topic: 'Pedidos de revisão de punição (restrito à equipe)',
@@ -773,7 +636,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'reportar-bug',
+        name: '🐛・reportar-bug',
         ref: 'bugs',
         preset: 'public',
         topic: 'Reporte bugs do jogo e do servidor',
@@ -786,7 +649,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'avaliar-staff',
+        name: '⭐・avaliar-staff',
         ref: 'avaliar-staff',
         preset: 'public',
         topic: 'Avalie o atendimento da equipe',
@@ -801,12 +664,12 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '💬 Comunidade',
+    name: '「💬」COMUNIDADE',
     ref: 'cat-comunidade',
     preset: 'public',
     channels: [
       {
-        name: 'geral',
+        name: '💬・geral',
         ref: 'geral',
         preset: 'public',
         topic: 'Conversa geral',
@@ -819,7 +682,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'memes',
+        name: '😂・memes',
         ref: 'memes',
         preset: 'public',
         topic: 'Humor leve e sem preconceito',
@@ -832,7 +695,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'midia',
+        name: '📸・midia',
         ref: 'midia',
         preset: 'public',
         topic: 'Clipes, prints e criação de conteúdo',
@@ -845,7 +708,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'sugestoes',
+        name: '💡・sugestoes',
         ref: 'sugestoes',
         preset: 'public',
         topic: 'Sugestões para o servidor (votação por reação)',
@@ -864,7 +727,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'parcerias',
+        name: '🤝・parcerias',
         ref: 'parcerias',
         preset: 'public',
         topic: 'Contato e divulgação de parcerias',
@@ -879,22 +742,22 @@ const CATEGORIES = [
     ],
   },
   {
-    name: '🔊 Voz',
+    name: '「🔊」VOZ',
     ref: 'cat-voz',
     preset: 'public',
     channels: [
-      { name: 'geral-1', type: 'voice' },
-      { name: 'geral-2', type: 'voice' },
-      { name: 'afk', type: 'voice', ref: 'afk' },
+      { name: '🔊・geral-1', type: 'voice' },
+      { name: '🔊・geral-2', type: 'voice' },
+      { name: '💤・afk', type: 'voice', ref: 'afk' },
     ],
   },
   {
-    name: '🛡️ Staff',
+    name: '「🛡️」STAFF',
     ref: 'cat-equipe',
     preset: 'staff',
     channels: [
       {
-        name: 'chat-staff',
+        name: '💭・chat-staff',
         preset: 'staff',
         topic: 'Comunicação interna da equipe',
         panel: panel(
@@ -906,7 +769,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'avisos-staff',
+        name: '📋・avisos-staff',
         preset: 'staff',
         topic: 'Avisos e alinhamentos internos',
         panel: panel(
@@ -918,7 +781,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'hierarquia-staff',
+        name: '🪜・hierarquia-staff',
         ref: 'hierarquia',
         preset: 'staff',
         topic: 'Organograma e diretrizes da equipe',
@@ -939,7 +802,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'registro-punicoes',
+        name: '⚠️・registro-punicoes',
         ref: 'registro',
         preset: 'staff',
         topic: 'Registro de punições aplicadas',
@@ -952,7 +815,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'logs-automod',
+        name: '🤖・logs-automod',
         ref: 'automod-logs',
         preset: 'staff',
         topic: 'Alertas de moderação automática',
@@ -965,7 +828,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'logs-tickets',
+        name: '🧾・logs-tickets',
         ref: 'ticket-logs',
         preset: 'staff',
         topic: 'Transcripts de tickets encerrados',
@@ -978,7 +841,7 @@ const CATEGORIES = [
         ),
       },
       {
-        name: 'diretoria',
+        name: '🏛️・diretoria',
         ref: 'diretoria',
         preset: 'staff-high',
         topic: 'Discussões restritas à direção',
@@ -990,11 +853,11 @@ const CATEGORIES = [
           { accent: COLORS.red },
         ),
       },
-      { name: 'sala-staff', type: 'voice', preset: 'staff' },
+      { name: '🔒・sala-staff', type: 'voice', preset: 'staff' },
     ],
   },
   {
-    name: '🎫 Tickets',
+    name: '「🎫」TICKETS',
     ref: 'cat-tickets',
     preset: 'staff',
     channels: [],
@@ -1013,7 +876,10 @@ for (const category of CATEGORIES) {
 const channelName = (ref) => CHANNEL_REFS[ref] ?? ref;
 
 const LEGACY_CATEGORIES = {};
-const LEGACY_CHANNELS = {};
+const LEGACY_CHANNELS = {
+  '📜・regras': ['regras'],
+  '📣・anuncios-gerais': ['anuncios-gerais'],
+};
 const LEGACY_ROLES = {};
 
 module.exports = {

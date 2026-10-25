@@ -37,7 +37,6 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
   const leaders = cfg.LEADER_KEYS.map(roleId).filter(Boolean);
   const org = (chCfg.orgKeys ?? []).map(roleId).filter(Boolean);
   const muted = roleId('mutado');
-
   const allowAll = [
     P.ViewChannel,
     P.SendMessages,
@@ -113,6 +112,15 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
       push(everyone, [], [P.ViewChannel]);
       staff.forEach((id) => push(id, allowAll));
       org.forEach((id) => push(id, allowAll));
+      break;
+    case 'recruit':
+      push(
+        everyone,
+        [P.ViewChannel, P.ReadMessageHistory, P.SendMessagesInThreads, P.AddReactions],
+        [P.SendMessages, P.CreatePublicThreads, P.CreatePrivateThreads],
+      );
+      staff.forEach((id) => push(id, staffThreads));
+      org.forEach((id) => push(id, [...allowAll, P.CreatePublicThreads]));
       break;
     case 'public':
     default:
@@ -334,6 +342,10 @@ async function ensureChannels(ctx) {
           options.topic = chCfg.topic;
         }
         if (chCfg.userLimit) options.userLimit = chCfg.userLimit;
+        if (chCfg.rateLimit) options.rateLimitPerUser = chCfg.rateLimit;
+        if (type === ChannelType.GuildForum && chCfg.tags?.length) {
+          options.availableTags = chCfg.tags.map((name) => ({ name, moderated: false }));
+        }
         if (preset !== catCfg.preset) options.permissionOverwrites = buildOverwrites(preset, ctx, chCfg);
 
         try {
@@ -351,6 +363,19 @@ async function ensureChannels(ctx) {
         }
       } else {
         reused += 1;
+        if (type === ChannelType.GuildForum && chCfg.tags?.length) {
+          const current = channel.availableTags.map((tag) => tag.name);
+          const changed =
+            current.length !== chCfg.tags.length || chCfg.tags.some((name, index) => name !== current[index]);
+          if (changed) {
+            try {
+              await channel.edit({ availableTags: chCfg.tags.map((name) => ({ name })) });
+              console.log(`[ok] Tags do fórum ajustadas: ${chCfg.name}`);
+            } catch (error) {
+              console.warn(`[aviso] Não foi possível ajustar as tags de ${chCfg.name}: ${error.message}`);
+            }
+          }
+        }
         if (preset !== catCfg.preset) {
           const expected = buildOverwrites(preset, ctx, chCfg);
           if (!overwritesMatch(channel, expected)) {
@@ -377,15 +402,16 @@ async function ensureChannels(ctx) {
       if (chCfg.ref) ctx.channels[chCfg.ref] = channel.id;
       if (!isNew && channel.type === ChannelType.GuildForum) continue;
       if (chCfg.panel && cfg.LAYOUT === 'v2') {
-        pendingMessages.push({ channel, panel: chCfg.panel, isNew });
+        const icon = chCfg.name.includes('・') ? chCfg.name.split('・')[0] : undefined;
+        pendingMessages.push({ channel, panel: chCfg.panel, icon, isNew });
       } else if (chCfg.message) {
         pendingMessages.push({ channel, key: chCfg.message, isNew });
       }
     }
   }
 
-  for (const { channel, key, panel: panelDef, isNew } of pendingMessages) {
-    const payload = panelDef ? buildPanel(panelDef, ctx) : buildMessage(key, ctx);
+  for (const { channel, key, panel: panelDef, icon, isNew } of pendingMessages) {
+    const payload = panelDef ? buildPanel(panelDef, { ...ctx, channelIcon: icon }) : buildMessage(key, ctx);
     if (!payload) continue;
 
     try {

@@ -62,10 +62,11 @@ function roleRows(cfg) {
 
 function buildPanel(def, ctx) {
   const accent = def.accent ?? ctx.cfg.ACCENT ?? 0xd4af37;
+  const icon = def.icon ?? ctx.channelIcon;
   const container = new ContainerBuilder().setAccentColor(accent);
 
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`# ${tokenize(def.title, ctx)}`),
+    new TextDisplayBuilder().setContent(`# ${icon ? `${icon} ` : ''}${tokenize(def.title, ctx)}`),
   );
 
   if (def.intro) {

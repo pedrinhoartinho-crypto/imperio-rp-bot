@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 62 canais, 42 cargos, fóruns de candidatura, facções/corporações privadas e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 11 categorias com emoji, 39 canais, 22 cargos, fóruns de candidatura e de recrutamento, e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Sub-Líder) para identificar lideranças.
 
@@ -25,18 +25,21 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 42 cargos, 12 categorias, 62 canais e 48 painéis, sem duplicatas.
+Estrutura criada do zero e auditada (0 divergências): 22 cargos, 11 categorias, 39 canais e 30 painéis, sem duplicatas.
+
+O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
 - **Chegada** — bem-vindo, cargos (botões de Ping Anúncios, Ping Sessão e Ping Ações)
-- **Informações / Anúncios / Regras** — regras, regras-rp, como-jogar, status, anúncios, atualizações, sessão (megafone), enquetes
+- **Informações** — regras, regras-rp, como-jogar, status (anúncio)
+- **Anúncios** — anúncios, atualizações, sessão (megafone) e enquetes
 - **Candidaturas** — fóruns de whitelist, polícia, facção e staff (um tópico por candidato)
+- **Recrutamento** — **um fórum único** com tags de Rodo, Prazeres, Babilônia, PMERJ, PCERJ e BOPE; só lideranças e staff criam anúncios, e todos podem responder nos tópicos. As facções e corporações continuam nos servidores próprios delas.
 - **Jogo** — procurar-cena, clipes e reportar-jogador (histórico restrito)
-- **Facções** — Rodo, Prazeres e Babilônia, cada uma com geral/avisos/ações + voz, visíveis só para os membros da organização e a equipe
-- **Corporações** — PMERJ, PCERJ e BOPE, com geral/avisos/operações + voz, também privadas
-- **Suporte / Comunidade / Voz / Staff / Tickets** — atendimento por botões, canais de conversa, equipe interna e categoria de tickets
-- **Cargos** — Fundador, Administração, Moderação, Suporte e Staff de RP; patentes de PMERJ/PCERJ/BOPE; líder/sub-líder/membro/novato por facção; comunidade, pings e punições
+- **Suporte** — abrir-ticket (Suporte, Denúncia, Recurso e Parceria — sem setor de Liderança), denúncias, recursos, bugs e avaliação da equipe
+- **Comunidade / Voz / Staff / Tickets** — conversa, mídia, sugestões, parcerias, canais de voz, equipe interna e categoria de tickets
+- **Cargos** — Fundador, Administração, Moderação, Suporte e Staff de RP; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; comunidade, pings e punições
 
-Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
+Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com ícone do canal no título, cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
 
 ## Estrutura criada
 
@@ -91,7 +94,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 ## Recursos em operação
 
 ### Tickets profissionais por setor
-Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria** e **Liderança**. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
+Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria** e **Liderança** (no Império). No Assault RJ são quatro setores, sem Liderança. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
 
 - **Assumir atendimento:** qualquer membro da equipe pode assumir; o botão mostra quem está atendendo.
 - **Fechar ticket:** disponível para o autor e para a equipe. O bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
