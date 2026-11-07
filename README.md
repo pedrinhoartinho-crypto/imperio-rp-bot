@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 11 categorias com emoji, 48 canais, 40 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 11 categorias com emoji, 48 canais, 33 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,7 +25,7 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 40 cargos, 11 categorias, 48 canais e 49 painéis, sem duplicatas.
+Estrutura criada do zero e auditada (0 divergências): 33 cargos, 11 categorias, 48 canais e 49 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
@@ -39,7 +39,7 @@ O padrão visual segue as boas práticas de servidores grandes: **um emoji por c
 - **Loja** — loja oficial (painel com botão de atendimento), OLX de vendas entre jogadores e avaliações da loja
 - **Voz / Staff / Tickets** — canais de voz, equipe interna, bate-ponto, relatórios de tickets e categoria de tickets
 - **Tag ASJ** — para staff e lideranças, automático: cargo dourado `𝔸𝕊𝕁` e prefixo no nome **`𝔸𝕊𝕁 | Nome`**. Entra ao ganhar um cargo da equipe e sai sozinho (cargo + prefixo) se perder todos. Atualiza na hora e é conferido a cada 10 minutos. Obs.: o apelido do dono do servidor só pode ser alterado por ele mesmo — nesse caso o cargo continua automático.
-- **Cargos** — Fundador, Sub Fundador, Administrador, Chefe de Diretoria, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; VIPs (Rubi, Safira, Diamante, Ouro, Prata, Bronze e Normal), Influencer, comunidade, pings e punições — todos com cores de alto contraste no tema escuro
+- **Cargos** — Fundador, Sub Fundador, Administrador, Chefe de Diretoria, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; Influencer, comunidade, pings e punições — todos com cores de alto contraste no tema escuro
 
 Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com ícone do canal no título, cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
 

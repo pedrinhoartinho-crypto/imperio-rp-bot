@@ -532,6 +532,47 @@ async function applyCategoryOrder(ctx) {
   if (moved) console.log('[ok] Ordem das categorias ajustada.');
 }
 
+async function applyChannelOrder(ctx) {
+  const { guild, cfg } = ctx;
+  await guild.channels.fetch();
+  let moved = 0;
+
+  for (const category of cfg.CATEGORIES) {
+    const cat = guild.channels.cache.find(
+      (channel) => channel.type === ChannelType.GuildCategory && channel.name === category.name,
+    );
+    if (!cat) continue;
+
+    const byName = new Map();
+    for (const child of guild.channels.cache.values()) {
+      if (child.parentId === cat.id && !byName.has(child.name)) byName.set(child.name, child);
+    }
+
+    const desired = [];
+    for (const chCfg of category.channels) {
+      const child = byName.get(chCfg.name);
+      if (child && !desired.includes(child)) desired.push(child);
+    }
+    for (const child of byName.values()) {
+      if (!desired.includes(child)) desired.push(child);
+    }
+
+    for (let index = 0; index < desired.length; index += 1) {
+      const child = desired[index];
+      if (child.rawPosition === index) continue;
+      try {
+        await child.setPosition(index, `${cfg.SERVIDOR} · ordem dos canais`);
+        moved += 1;
+        await wait(250);
+      } catch (error) {
+        console.warn(`[aviso] Nao foi possivel mover ${child.name}: ${error.message}`);
+      }
+    }
+  }
+
+  if (moved) console.log(`[ok] Ordem dos canais aplicada (${moved} ajuste(s)).`);
+}
+
 async function applyGuildSettings(ctx) {
   const { guild, cfg } = ctx;
 
@@ -648,6 +689,7 @@ async function setupGuild(client, guild, config) {
   await applyAutorole(ctx);
   const channels = await ensureChannels(ctx);
   await applyCategoryOrder(ctx);
+  await applyChannelOrder(ctx);
   await syncGuildTags(guild, cfg);
   await applyGuildSettings(ctx);
   await applyAutoMod(ctx);
