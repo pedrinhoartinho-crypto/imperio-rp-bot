@@ -80,6 +80,11 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
       push(everyone, [], [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AddReactions]);
       staff.forEach((id) => push(id, allowAll));
       break;
+    case 'staff-call':
+      push(everyone, [P.ViewChannel], [P.Connect]);
+      staff.forEach((id) => push(id, [P.Connect, P.MoveMembers]));
+      if (roleId('vendedor')) push(roleId('vendedor'), [P.Connect, P.MoveMembers]);
+      break;
     case 'staff-high':
       push(everyone, [], [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AddReactions]);
       senior.forEach((id) => push(id, allowAll));

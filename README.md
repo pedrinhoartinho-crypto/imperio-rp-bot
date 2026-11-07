@@ -89,7 +89,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), servidores (lista oficial), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
-- **Equipe** — chat-staff, avisos-staff, aguardando (fila de tickets), atendimento (cards em curso), atendendo-1 e atendendo-2 (salas de voz para as calls dos tickets), bate-ponto, ponto-geral (só direção), hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff (voz)
+- **Equipe** — chat-staff, avisos-staff, aguardando (fila de tickets), atendimento (cards em curso), atendendo-1 e atendendo-2 (salas de voice para as calls dos tickets: todo mundo vê, mas só a staff e o Vendedor entram — e podem puxar o membro pra dentro), bate-ponto, ponto-geral (só direção), hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff (voz)
 - **Tickets** — categoria privada onde os atendimentos são criados automaticamente
 - **Canais de voz** — geral, ação-1, ação-2, eventos (palco), afk
 
