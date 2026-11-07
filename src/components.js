@@ -87,10 +87,39 @@ async function handleRoleButton(interaction) {
   }
 }
 
-function findTicketCategory(guild, cfg) {
+function ticketCategoryRefs(cfg) {
+  const refs = new Set(['cat-tickets']);
+  for (const ticket of cfg.TICKETS ?? []) {
+    if (ticket.categoryKey) refs.add(ticket.categoryKey);
+  }
+  return refs;
+}
+
+function findTicketCategory(guild, cfg, ticketCfg) {
+  const ref = ticketCfg?.categoryKey ?? 'cat-tickets';
   return guild.channels.cache.find(
-    (channel) => channel.type === ChannelType.GuildCategory && channel.name === cfg.CATEGORY_REFS['cat-tickets'],
+    (channel) => channel.type === ChannelType.GuildCategory && channel.name === cfg.CATEGORY_REFS[ref],
   );
+}
+
+function isTicketChannel(channel, cfg) {
+  const parentName = channel?.parent?.name;
+  if (!parentName) return false;
+  for (const ref of ticketCategoryRefs(cfg)) {
+    if (cfg.CATEGORY_REFS[ref] === parentName) return true;
+  }
+  return false;
+}
+
+function ticketFromTopic(cfg, channel) {
+  const key = (channel.topic?.match(/^ticket:([a-z0-9]+)/) ?? [])[1];
+  return { key, ticketCfg: cfg.TICKETS.find((ticket) => ticket.key === key) ?? null };
+}
+
+function canAttendTicket(member, cfg, ticketCfg) {
+  if (isTicketStaff(member, cfg)) return true;
+  if (!ticketCfg?.staffKey) return false;
+  return member.roles.cache.some((role) => role.name === roleNameFor(cfg, ticketCfg.staffKey));
 }
 
 async function openTicket(interaction, key) {
@@ -100,14 +129,20 @@ async function openTicket(interaction, key) {
   const ticketCfg = cfg.TICKETS.find((ticket) => ticket.key === key) ?? cfg.TICKETS[0];
   const { guild, user } = interaction;
 
-  const category = findTicketCategory(guild, cfg);
+  const category = findTicketCategory(guild, cfg, ticketCfg);
   if (!category) {
     await replyEphemeral(interaction, 'O sistema de tickets ainda não está disponível. Rode o setup do bot.');
     return;
   }
 
+  const ticketCats = [];
+  for (const ref of ticketCategoryRefs(cfg)) {
+    const cat = findTicketCategory(guild, cfg, { categoryKey: ref });
+    if (cat) ticketCats.push(cat.id);
+  }
+
   const existing = guild.channels.cache.find(
-    (channel) => channel.parentId === category.id && channel.topic?.includes(`(${user.id})`),
+    (channel) => ticketCats.includes(channel.parentId) && channel.topic?.includes(`(${user.id})`),
   );
   if (existing) {
     await replyEphemeral(interaction, `Você já possui um atendimento aberto: <#${existing.id}>.`);
@@ -133,6 +168,10 @@ async function openTicket(interaction, key) {
   const suporteName = roleNameFor(cfg, 'suporte');
   const suporte = guild.roles.cache.find((role) => role.name === suporteName);
 
+  const sectorName = ticketCfg.staffKey ? roleNameFor(cfg, ticketCfg.staffKey) : null;
+  const sectorRole = sectorName ? guild.roles.cache.find((role) => role.name === sectorName) : null;
+  const grantIds = [...new Set([...staffIds, ...(sectorRole ? [sectorRole.id] : [])])];
+
   const channel = await guild.channels.create({
     name: `ticket-${slug(ticketCfg.label)}-${slug(user.username)}`.slice(0, 100),
     type: ChannelType.GuildText,
@@ -142,7 +181,7 @@ async function openTicket(interaction, key) {
       { id: guild.roles.everyone.id, deny: [P.ViewChannel] },
       { id: user.id, allow },
       { id: interaction.client.user.id, allow: [...allow, P.ManageMessages] },
-      ...staffIds.map((id) => ({ id, allow })),
+      ...grantIds.map((id) => ({ id, allow })),
     ],
     reason: `Abertura de ticket (${ticketCfg.label})`,
   });
@@ -158,8 +197,9 @@ async function openTicket(interaction, key) {
     new ButtonBuilder().setCustomId('ticket:fechar').setLabel('Fechar ticket').setStyle(ButtonStyle.Danger),
   );
 
+  const pingRole = sectorRole ?? suporte;
   await channel.send({
-    content: `<@${user.id}> seu atendimento de **${ticketCfg.label}** foi aberto.${suporte ? `\n<@&${suporte.id}>` : ''}`,
+    content: `<@${user.id}> seu atendimento de **${ticketCfg.label}** foi aberto.${pingRole ? `\n<@&${pingRole.id}>` : ''}`,
     embeds: [embed],
     components: [controls],
   });
@@ -186,13 +226,14 @@ async function assumeTicket(interaction) {
   if (!cfg) return;
 
   const channel = interaction.channel;
-  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) {
+  if (!isTicketChannel(channel, cfg)) {
     await replyEphemeral(interaction, 'Este botão só funciona dentro de um ticket.');
     return;
   }
 
-  if (!isTicketStaff(interaction.member, cfg)) {
-    await replyEphemeral(interaction, 'Somente a equipe pode assumir atendimentos.');
+  const claimedTicket = ticketFromTopic(cfg, channel).ticketCfg;
+  if (!canAttendTicket(interaction.member, cfg, claimedTicket)) {
+    await replyEphemeral(interaction, 'Somente a equipe responsável pode assumir este atendimento.');
     return;
   }
 
@@ -245,19 +286,19 @@ async function closeTicket(interaction) {
   if (!cfg) return;
 
   const channel = interaction.channel;
-  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) return;
+  if (!isTicketChannel(channel, cfg)) return;
 
+  const { ticketCfg } = ticketFromTopic(cfg, channel);
   const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
   const isAuthor = authorId === interaction.user.id;
-  if (!isAuthor && !isTicketStaff(interaction.member, cfg)) {
+  if (!isAuthor && !canAttendTicket(interaction.member, cfg, ticketCfg)) {
     await replyEphemeral(interaction, 'Apenas a equipe ou o autor podem fechar este ticket.');
     return;
   }
 
-  const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
-  const label = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
+  const label = ticketCfg?.label ?? 'Atendimento';
 
-  if (isTicketStaff(interaction.member, cfg)) {
+  if (canAttendTicket(interaction.member, cfg, ticketCfg)) {
     pendingCloses.set(channel.id, { authorId, label, closedBy: interaction.user.id });
     const modal = new ModalBuilder().setCustomId('ticket:fechar:relatorio').setTitle('Relatório do atendimento');
     modal.addLabelComponents(
@@ -402,31 +443,6 @@ async function sendTranscript(channel, meta) {
   await logs
     .send({ content: `**Ticket fechado** — \`${channel.name}\` (${meta.label})`, files: [file] })
     .catch(() => {});
-}
-
-async function closeTicket(interaction) {
-  const cfg = getConfig(interaction.guildId);
-  if (!cfg) return;
-
-  const channel = interaction.channel;
-  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) return;
-
-  const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
-  const isAuthor = authorId === interaction.user.id;
-  if (!isAuthor && !isTicketStaff(interaction.member, cfg)) {
-    await replyEphemeral(interaction, 'Apenas a equipe ou o autor podem fechar este ticket.');
-    return;
-  }
-
-  const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
-  const label = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
-
-  await interaction.reply({ content: 'Encerrando o atendimento e gerando o registro...', flags: MessageFlags.Ephemeral });
-  await sendTranscript(channel, { authorId, label, closedBy: interaction.user });
-
-  claimed.delete(channel.id);
-  await wait(1500);
-  await channel.delete(`Ticket fechado por ${interaction.user.tag}`).catch(() => {});
 }
 
 async function handlePonto(interaction, action) {

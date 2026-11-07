@@ -95,6 +95,8 @@ const TICKETS = [
     summary: 'Compras e produtos oficiais',
     title: 'Atendimento — Loja',
     color: 0xd4af37,
+    staffKey: 'vendedor',
+    categoryKey: 'cat-tickets-loja',
     instructions:
       'Informe o produto ou serviço que você quer comprar, seu personagem e a forma de pagamento combinada. A equipe confirma estoque e entrega.',
   },
@@ -229,6 +231,14 @@ const ROLES = [
     key: 'estagiario',
     name: 'Estagiário',
     color: '#BDC3C7',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vendedor',
+    name: 'Vendedor',
+    color: '#1ABC9C',
     hoist: true,
     mentionable: false,
     perms: [],
@@ -1282,6 +1292,12 @@ const CATEGORIES = [
   {
     name: '「🎫」TICKETS',
     ref: 'cat-tickets',
+    preset: 'staff',
+    channels: [],
+  },
+  {
+    name: '「🛍️」TICKETS-LOJA',
+    ref: 'cat-tickets-loja',
     preset: 'staff',
     channels: [],
   },

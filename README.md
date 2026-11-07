@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 11 categorias com emoji, 48 canais, 33 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 48 canais, 34 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,7 +25,7 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 33 cargos, 11 categorias, 48 canais e 49 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
+Estrutura criada do zero e auditada (0 divergências): 34 cargos, 12 categorias, 48 canais e 49 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
@@ -97,6 +97,8 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 
 ### Tickets profissionais por setor
 Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria**, **Loja** e **Liderança** (no Império). No Assault RJ são cinco setores, sem Liderança. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
+
+O setor de **Loja** tem atuação separada: o atendimento nasce já na categoria `「🛍️」TICKETS-LOJA` e o ping vai para o cargo **Vendedor** — quem tiver esse cargo (ou a direção) consegue assumir e fechar. É só entregar o cargo Vendedor pra quem cuida das vendas.
 
 - **Assumir atendimento:** qualquer membro da equipe pode assumir; o botão mostra quem está atendendo.
 - **Fechar ticket:** disponível para o autor e para a equipe. Ao fechar, a equipe preenche um relatório (resumo + resolução) que vai para #relatorios-tickets; o bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
