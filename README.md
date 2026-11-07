@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 51 canais, 34 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 53 canais (9 de voz), 34 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,7 +25,7 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 34 cargos, 12 categorias, 51 canais e 52 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
+Estrutura criada do zero e auditada (0 divergências): 34 cargos, 12 categorias, 53 canais e 52 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — texto e voz ficam ordenados por família, e canal novo nasce na posição certa.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
@@ -89,7 +89,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), servidores (lista oficial), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
-- **Equipe** — chat-staff, avisos-staff, aguardando (fila de tickets), atendimento (cards em curso), bate-ponto, ponto-geral (só direção), hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff
+- **Equipe** — chat-staff, avisos-staff, aguardando (fila de tickets), atendimento (cards em curso), atendendo-1 e atendendo-2 (salas de voz para as calls dos tickets), bate-ponto, ponto-geral (só direção), hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff (voz)
 - **Tickets** — categoria privada onde os atendimentos são criados automaticamente
 - **Canais de voz** — geral, ação-1, ação-2, eventos (palco), afk
 

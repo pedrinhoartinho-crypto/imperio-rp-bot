@@ -1196,6 +1196,8 @@ const CATEGORIES = [
           { accent: COLORS.blue },
         ),
       },
+      { name: '🔊・atendendo-1', type: 'voice', preset: 'staff' },
+      { name: '🔊・atendendo-2', type: 'voice', preset: 'staff' },
       {
         name: '🕒・bate-ponto',
         ref: 'ponto',

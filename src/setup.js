@@ -548,24 +548,39 @@ async function applyChannelOrder(ctx) {
       if (child.parentId === cat.id && !byName.has(child.name)) byName.set(child.name, child);
     }
 
-    const desired = [];
+    const families = new Map();
+    const familyOf = (channel) =>
+      [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.GuildForum].includes(channel.type)
+        ? 'text'
+        : 'voice';
+
     for (const chCfg of category.channels) {
       const child = byName.get(chCfg.name);
-      if (child && !desired.includes(child)) desired.push(child);
-    }
-    for (const child of byName.values()) {
-      if (!desired.includes(child)) desired.push(child);
+      if (!child) continue;
+      const family = familyOf(child);
+      if (!families.has(family)) families.set(family, []);
+      if (!families.get(family).includes(child)) families.get(family).push(child);
     }
 
-    for (let index = 0; index < desired.length; index += 1) {
-      const child = desired[index];
-      if (child.rawPosition === index) continue;
-      try {
-        await child.setPosition(index, `${cfg.SERVIDOR} · ordem dos canais`);
-        moved += 1;
-        await wait(250);
-      } catch (error) {
-        console.warn(`[aviso] Nao foi possivel mover ${child.name}: ${error.message}`);
+    for (const child of byName.values()) {
+      const family = familyOf(child);
+      const desiredChild = category.channels.some((chCfg) => chCfg.name === child.name);
+      if (desiredChild) continue;
+      if (!families.has(family)) families.set(family, []);
+      families.get(family).push(child);
+    }
+
+    for (const sequence of families.values()) {
+      for (let index = 0; index < sequence.length; index += 1) {
+        const child = sequence[index];
+        if (child.rawPosition === index) continue;
+        try {
+          await child.setPosition(index, `${cfg.SERVIDOR} · ordem dos canais`);
+          moved += 1;
+          await wait(200);
+        } catch (error) {
+          console.warn(`[aviso] Nao foi possivel mover ${child.name}: ${error.message}`);
+        }
       }
     }
   }
