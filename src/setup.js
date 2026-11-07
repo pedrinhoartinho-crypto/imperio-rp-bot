@@ -77,11 +77,11 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
       (chCfg.orgKeys ? org : leaders).forEach((id) => push(id, allowAll));
       break;
     case 'staff':
-      push(everyone, [], [P.ViewChannel]);
+      push(everyone, [], [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AddReactions]);
       staff.forEach((id) => push(id, allowAll));
       break;
     case 'staff-high':
-      push(everyone, [], [P.ViewChannel]);
+      push(everyone, [], [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AddReactions]);
       senior.forEach((id) => push(id, allowAll));
       junior.forEach((id) => push(id, [], [P.ViewChannel]));
       break;
@@ -197,23 +197,39 @@ async function ensureRoles(ctx) {
     ctx.roles[roleCfg.key] = role;
   }
 
-  const me = await guild.members.fetchMe();
-  const botRole = me.roles.highest;
   const ordered = cfg.ROLES.map((roleCfg) => ctx.roles[roleCfg.key]).filter(Boolean);
-  const slots = ordered.map((role) => role.position).sort((a, b) => b - a);
-  const positions = [];
-  ordered.forEach((role, index) => {
-    if (role.position !== slots[index]) positions.push({ role, position: slots[index] });
-  });
+  const managedIds = new Set(guild.roles.cache.filter((role) => role.managed).map((role) => role.id));
+  let previous = ordered[0];
+  let moved = 0;
 
-  if (positions.length) {
-    try {
-      await guild.roles.setPositions(positions);
-      console.log(`[ok] Hierarquia de cargos aplicada (${positions.length} ajuste(s)).`);
-    } catch (error) {
-      console.warn(`[aviso] Não foi possível ajustar a hierarquia de cargos: ${error.message}`);
+  for (let index = 1; index < ordered.length; index += 1) {
+    const role = ordered[index];
+    let desired = previous.position - 1;
+    while (
+      desired > 0 &&
+      [...guild.roles.cache.values()].some(
+        (other) => other.id !== role.id && other.position === desired && managedIds.has(other.id),
+      )
+    ) {
+      desired -= 1;
+    }
+    if (desired < 1) desired = 1;
+
+    if (role.position !== desired) {
+      try {
+        previous = await role.setPosition(desired, `${cfg.SERVIDOR} · hierarquia`);
+        moved += 1;
+        await wait(200);
+      } catch (error) {
+        console.warn(`[aviso] Não foi possível posicionar ${role.name}: ${error.message}`);
+        previous = role;
+      }
+    } else {
+      previous = role;
     }
   }
+
+  if (moved) console.log(`[ok] Hierarquia de cargos aplicada (${moved} ajuste(s)).`);
 
   return { created, reused };
 }
@@ -352,7 +368,7 @@ async function ensureChannels(ctx) {
         if (type === ChannelType.GuildForum && chCfg.tags?.length) {
           options.availableTags = chCfg.tags.map((name) => ({ name, moderated: false }));
         }
-        if (preset !== catCfg.preset) options.permissionOverwrites = buildOverwrites(preset, ctx, chCfg);
+        options.permissionOverwrites = buildOverwrites(preset, ctx, chCfg);
 
         try {
           channel = await guild.channels.create(options);
@@ -369,6 +385,14 @@ async function ensureChannels(ctx) {
         }
       } else {
         reused += 1;
+        if (channel.parentId !== category.id) {
+          try {
+            await channel.setParent(category.id, { lockPermissions: false });
+            console.log(`[ok] Canal movido: ${channel.name} → ${category.name}`);
+          } catch (error) {
+            console.warn(`[aviso] Não foi possível mover ${channel.name}: ${error.message}`);
+          }
+        }
         if (type === ChannelType.GuildForum && chCfg.tags?.length) {
           const current = channel.availableTags.map((tag) => tag.name);
           const changed =
@@ -382,25 +406,13 @@ async function ensureChannels(ctx) {
             }
           }
         }
-        if (preset !== catCfg.preset) {
-          const expected = buildOverwrites(preset, ctx, chCfg);
-          if (!overwritesMatch(channel, expected)) {
-            try {
-              await channel.permissionOverwrites.set(expected);
-              console.log(`[ok] Permissões ajustadas: ${chCfg.name}`);
-            } catch (error) {
-              console.warn(`[aviso] Não foi possível ajustar as permissões de ${chCfg.name}: ${error.message}`);
-            }
-          }
-        } else if (channel.permissionOverwrites.cache.size) {
-          const expected = buildOverwrites(catCfg.preset, ctx, catCfg);
-          if (overwritesMatch(channel, expected)) {
-            try {
-              await channel.permissionOverwrites.set([]);
-              console.log(`[ok] Permissões herdadas: ${chCfg.name}`);
-            } catch (error) {
-              console.warn(`[aviso] Não foi possível limpar as permissões de ${chCfg.name}: ${error.message}`);
-            }
+        const expected = buildOverwrites(preset, ctx, chCfg);
+        if (!overwritesMatch(channel, expected)) {
+          try {
+            await channel.permissionOverwrites.set(expected);
+            console.log(`[ok] Permissões ajustadas: ${chCfg.name}`);
+          } catch (error) {
+            console.warn(`[aviso] Não foi possível ajustar as permissões de ${chCfg.name}: ${error.message}`);
           }
         }
       }

@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 10 categorias com emoji, 36 canais, 31 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 11 categorias com emoji, 48 canais, 40 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,19 +25,21 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 31 cargos, 10 categorias, 36 canais e 37 painéis, sem duplicatas.
+Estrutura criada do zero e auditada (0 divergências): 40 cargos, 11 categorias, 48 canais e 49 painéis, sem duplicatas.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
-- **Chegada** — bem-vindo, cargos (botões de Ping Anúncios e Ping Ações)
+- **Chegada** — bem-vindo, entrou (log de novos membros) e cargos (botões de Ping Anúncios e Ping Ações)
 - **Times** — `📋・times` com um cartão e foto para cada organização (Babilônia, Prazeres, Rodo, PMERJ, PCERJ e BOPE), mostrando **🟢 Livre** ou **🔴 Assumida** com o líder marcado; `🏚️・rec-facção` e `🚔・rec-corporação` para os líderes publicarem o recrutamento
 - **Informações** — regras, regras-rp, como-jogar, status (anúncio)
-- **Anúncios** — anúncios, atualizações e enquetes
-- **Jogo** — procurar-cena, clipes e reportar-jogador (histórico restrito)
-- **Suporte** — abrir-ticket (Suporte, Denúncia, Recurso e Parceria — sem setor de Liderança), denúncias, recursos, bugs e avaliação da equipe
-- **Comunidade / Voz / Staff / Tickets** — conversa, mídia, sugestões, parcerias, canais de voz, equipe interna e categoria de tickets
+- **Anúncios** — anúncios, atualizações, sorteios, seja-booster e enquetes
+- **Jogo** — procurar-cena, clipes, eventos e reportar-jogador (histórico restrito)
+- **Suporte** — abrir-ticket (Suporte, Denúncia, Recurso, Parceria e Loja), denúncias, recursos, bugs e avaliação da equipe
+- **Comunidade** — conversa, memes, mídia, jornal, shorts, comandos, sugestões e parcerias
+- **Loja** — loja oficial (painel com botão de atendimento), OLX de vendas entre jogadores e avaliações da loja
+- **Voz / Staff / Tickets** — canais de voz, equipe interna, bate-ponto, relatórios de tickets e categoria de tickets
 - **Tag ASJ** — para staff e lideranças, automático: cargo dourado `𝔸𝕊𝕁` e prefixo no nome **`𝔸𝕊𝕁 | Nome`**. Entra ao ganhar um cargo da equipe e sai sozinho (cargo + prefixo) se perder todos. Atualiza na hora e é conferido a cada 10 minutos. Obs.: o apelido do dono do servidor só pode ser alterado por ele mesmo — nesse caso o cargo continua automático.
-- **Cargos** — Fundador, Administrador, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; comunidade, pings e punições — todos com cores de alto contraste no tema escuro
+- **Cargos** — Fundador, Sub Fundador, Administrador, Chefe de Diretoria, Diretor Geral, Diretores (Operações, Tecnologia e Marketing), Gerente Geral, Supervisor, Coordenador, Moderador, Suporte, Staff de RP, Auxiliar e Estagiário; Comando PMERJ/PCERJ/BOPE; Líder do Rodo, dos Prazeres e da Babilônia; VIPs (Rubi, Safira, Diamante, Ouro, Prata, Bronze e Normal), Influencer, comunidade, pings e punições — todos com cores de alto contraste no tema escuro
 
 Os painéis usam `MessageFlags.IsComponentsV2` (Container + TextDisplay + Separator), com ícone do canal no título, cor de destaque dourada `#D4AF37` e rodapé com a versão. O setup reconhece o painel existente pelo título e atualiza no lugar, sem duplicar.
 
@@ -87,21 +89,22 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), servidores (lista oficial), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
-- **Equipe** — chat-staff, avisos-staff, hierarquia-staff, bate-ponto, ausências, registro-punições, logs-automod, logs-tickets, diretoria (só direção), sala-staff
+- **Equipe** — chat-staff, avisos-staff, bate-ponto, hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff
 - **Tickets** — categoria privada onde os atendimentos são criados automaticamente
 - **Canais de voz** — geral, ação-1, ação-2, eventos (palco), afk
 
 ## Recursos em operação
 
 ### Tickets profissionais por setor
-Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria** e **Liderança** (no Império). No Assault RJ são quatro setores, sem Liderança. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
+Em #abrir-ticket, o membro escolhe entre **Suporte**, **Denúncia**, **Recurso**, **Parceria**, **Loja** e **Liderança** (no Império). No Assault RJ são cinco setores, sem Liderança. O bot cria um canal privado na categoria Tickets (visível para o autor e a equipe), marca o Suporte e mostra as instruções do setor escolhido.
 
 - **Assumir atendimento:** qualquer membro da equipe pode assumir; o botão mostra quem está atendendo.
-- **Fechar ticket:** disponível para o autor e para a equipe. O bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
+- **Fechar ticket:** disponível para o autor e para a equipe. Ao fechar, a equipe preenche um relatório (resumo + resolução) que vai para #relatorios-tickets; o bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
+- **Relatórios:** cada atendimento assumido gera um registro em #relatorios-tickets com atendente, solicitante, setor e horário.
 - Um membro só pode ter um atendimento aberto por vez.
 
 ### Bate-ponto com persistência
-Em #bate-ponto, a equipe registra entrada e saída por botão. O bot salva os horários em `data/bateponto.json`, confirma o horário real e acumula o tempo total de cada membro. Não é possível registrar duas entradas ou uma saída sem entrada.
+Em #bate-ponto, a equipe registra entrada e saída por botão, consulta o total acumulado com **Meu relatório** e registra ausências pelo formulário. O bot salva os horários por guild em `data/<guildId>/bateponto.json`, confirma o horário real e acumula o tempo total de cada membro. Não é possível registrar duas entradas ou uma saída sem entrada.
 
 ### Registro de ausências
 Em #ausencias, o membro da equipe clica em "Registrar ausência" e preenche um formulário (início, retorno previsto e motivo). O bot publica o registro no canal.

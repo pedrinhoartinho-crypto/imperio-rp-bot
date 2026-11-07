@@ -46,6 +46,16 @@ function ticketRows(cfg) {
   return rows;
 }
 
+function pontoRows() {
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('ponto:entrada').setLabel('Bater entrada').setStyle(ButtonStyle.Success).setEmoji('🟢'),
+    new ButtonBuilder().setCustomId('ponto:saida').setLabel('Bater saída').setStyle(ButtonStyle.Danger).setEmoji('🔴'),
+    new ButtonBuilder().setCustomId('ponto:relatorio').setLabel('Meu relatório').setStyle(ButtonStyle.Secondary).setEmoji('📊'),
+    new ButtonBuilder().setCustomId('ausencia:abrir').setLabel('Ausência').setStyle(ButtonStyle.Secondary).setEmoji('📅'),
+  );
+  return [row];
+}
+
 function roleRows(cfg) {
   const rows = [];
   const keys = cfg.MENU_ROLE_KEYS ?? [];
@@ -111,6 +121,7 @@ function buildPanel(def, ctx) {
 
   if (def.kind === 'tickets') container.addActionRowComponents(...ticketRows(ctx.cfg));
   if (def.kind === 'cargos') container.addActionRowComponents(...roleRows(ctx.cfg));
+  if (def.kind === 'ponto') container.addActionRowComponents(...pontoRows());
   if (def.button) {
     const button = new ButtonBuilder()
       .setCustomId(def.button.id)

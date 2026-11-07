@@ -19,6 +19,7 @@ const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const claimed = new Map();
+const pendingCloses = new Map();
 
 function namesFor(cfg, keys) {
   return keys.map((key) => cfg.ROLES.find((role) => role.key === key)?.name).filter(Boolean);
@@ -166,6 +167,20 @@ async function openTicket(interaction, key) {
   await replyEphemeral(interaction, `Ticket aberto: <#${channel.id}>.`);
 }
 
+function findTicketReportChannel(guild, cfg) {
+  return guild.channels.cache.find((channel) => channel.name === cfg.channelName('ticket-reports'));
+}
+
+function staffIdFromTopic(channel) {
+  return (channel.topic?.match(/\|\s*staff:(\d{17,20})/) ?? [])[1];
+}
+
+async function postTicketReport(guild, cfg, embed) {
+  const channel = findTicketReportChannel(guild, cfg);
+  if (!channel) return;
+  await channel.send({ embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
+}
+
 async function assumeTicket(interaction) {
   const cfg = getConfig(interaction.guildId);
   if (!cfg) return;
@@ -189,6 +204,32 @@ async function assumeTicket(interaction) {
 
   claimed.set(channel.id, interaction.user.id);
 
+  const baseTopic = (channel.topic ?? '').replace(/\s*\|\s*staff:\d{17,20}/, '');
+  await channel
+    .setTopic(`${baseTopic} | staff:${interaction.user.id}`.slice(0, 1024), 'Ticket assumido')
+    .catch(() => {});
+
+  const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
+  const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
+  const sector = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
+
+  const report = new EmbedBuilder()
+    .setColor(0x2ecc71)
+    .setTitle('🎫 Ticket assumido')
+    .addFields(
+      { name: 'Atendente', value: `<@${interaction.user.id}>`, inline: true },
+      { name: 'Setor', value: sector, inline: true },
+      { name: 'Solicitante', value: authorId ? `<@${authorId}>` : 'Desconhecido', inline: true },
+      {
+        name: 'Ticket',
+        value: `[#${channel.name}](https://discord.com/channels/${channel.guild.id}/${channel.id})`,
+      },
+    )
+    .setFooter({ text: `Ticket ${channel.id}` })
+    .setTimestamp();
+
+  await postTicketReport(channel.guild, cfg, report);
+
   const label = `Atendendo: ${interaction.member.displayName}`.slice(0, 80);
   const controls = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('ticket:assumir').setLabel(label).setStyle(ButtonStyle.Success).setDisabled(true),
@@ -197,6 +238,127 @@ async function assumeTicket(interaction) {
 
   await interaction.message.edit({ components: [controls] });
   await interaction.reply({ content: `Atendimento assumido por <@${interaction.user.id}>.` });
+}
+
+async function closeTicket(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  const channel = interaction.channel;
+  if (!channel || channel.parent?.name !== cfg.CATEGORY_REFS['cat-tickets']) return;
+
+  const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
+  const isAuthor = authorId === interaction.user.id;
+  if (!isAuthor && !isTicketStaff(interaction.member, cfg)) {
+    await replyEphemeral(interaction, 'Apenas a equipe ou o autor podem fechar este ticket.');
+    return;
+  }
+
+  const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
+  const label = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
+
+  if (isTicketStaff(interaction.member, cfg)) {
+    pendingCloses.set(channel.id, { authorId, label, closedBy: interaction.user.id });
+    const modal = new ModalBuilder().setCustomId('ticket:fechar:relatorio').setTitle('Relatório do atendimento');
+    modal.addLabelComponents(
+      new LabelBuilder().setLabel('Resumo do atendimento').setTextInputComponent(
+        new TextInputBuilder()
+          .setCustomId('resumo')
+          .setStyle(TextInputStyle.Paragraph)
+          .setMaxLength(1000)
+          .setRequired(true)
+          .setPlaceholder('O que o solicitante precisava?'),
+      ),
+      new LabelBuilder().setLabel('Resolução').setTextInputComponent(
+        new TextInputBuilder()
+          .setCustomId('resolucao')
+          .setStyle(TextInputStyle.Short)
+          .setMaxLength(250)
+          .setRequired(true)
+          .setPlaceholder('O que foi feito?'),
+      ),
+      new LabelBuilder().setLabel('Observações (opcional)').setTextInputComponent(
+        new TextInputBuilder()
+          .setCustomId('observacoes')
+          .setStyle(TextInputStyle.Short)
+          .setMaxLength(250)
+          .setRequired(false),
+      ),
+    );
+    await interaction.showModal(modal);
+    return;
+  }
+
+  await interaction.reply({ content: 'Encerrando o atendimento e gerando o registro...', flags: MessageFlags.Ephemeral });
+  await sendTranscript(channel, { authorId, label, closedBy: interaction.user, staffId: staffIdFromTopic(channel) });
+
+  const report = new EmbedBuilder()
+    .setColor(0xe74c3c)
+    .setTitle('🎫 Ticket encerrado')
+    .addFields(
+      { name: 'Atendente', value: staffIdFromTopic(channel) ? `<@${staffIdFromTopic(channel)}>` : 'Não assumido', inline: true },
+      { name: 'Solicitante', value: authorId ? `<@${authorId}>` : 'Desconhecido', inline: true },
+      { name: 'Setor', value: label, inline: true },
+      { name: 'Fechado por', value: `<@${interaction.user.id}>` },
+      { name: 'Ticket', value: `#${channel.name}` },
+    )
+    .setTimestamp();
+
+  await postTicketReport(channel.guild, cfg, report);
+
+  claimed.delete(channel.id);
+  pendingCloses.delete(channel.id);
+  await wait(1500);
+  await channel.delete(`Ticket fechado por ${interaction.user.tag}`).catch(() => {});
+}
+
+async function handleTicketCloseModal(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  const channel = interaction.channel;
+  const pending = channel ? pendingCloses.get(channel.id) : null;
+  if (!channel || !pending) {
+    await replyEphemeral(interaction, 'Este atendimento não está mais disponível para fechamento.');
+    return;
+  }
+
+  const resumo = interaction.fields.getTextInputValue('resumo');
+  const resolucao = interaction.fields.getTextInputValue('resolucao');
+  const observacoes = interaction.fields.getTextInputValue('observacoes');
+  const staffId = staffIdFromTopic(channel) ?? pending.closedBy;
+
+  await interaction.reply({ content: 'Relatório registrado. Encerrando o atendimento...', flags: MessageFlags.Ephemeral });
+
+  const report = new EmbedBuilder()
+    .setColor(0x2ecc71)
+    .setTitle('📋 Relatório de atendimento')
+    .addFields(
+      { name: 'Atendente', value: `<@${staffId}>`, inline: true },
+      { name: 'Solicitante', value: pending.authorId ? `<@${pending.authorId}>` : 'Desconhecido', inline: true },
+      { name: 'Setor', value: pending.label, inline: true },
+      { name: 'Resumo', value: resumo.slice(0, 1024) },
+      { name: 'Resolução', value: resolucao.slice(0, 1024) },
+      ...(observacoes ? [{ name: 'Observações', value: observacoes.slice(0, 1024) }] : []),
+      {
+        name: 'Ticket',
+        value: `#${channel.name} · \`${channel.id}\``,
+      },
+    )
+    .setTimestamp();
+
+  await postTicketReport(channel.guild, cfg, report);
+  await sendTranscript(channel, {
+    authorId: pending.authorId,
+    label: pending.label,
+    closedBy: interaction.user,
+    staffId,
+  });
+
+  claimed.delete(channel.id);
+  pendingCloses.delete(channel.id);
+  await wait(1500);
+  await channel.delete(`Ticket fechado por ${interaction.user.tag}`).catch(() => {});
 }
 
 async function sendTranscript(channel, meta) {
@@ -227,6 +389,7 @@ async function sendTranscript(channel, meta) {
     `Ticket: ${channel.name}`,
     `Setor: ${meta.label}`,
     `Autor: ${meta.authorId ?? 'desconhecido'}`,
+    `Atendente: ${meta.staffId ?? 'não assumido'}`,
     `Fechado por: ${meta.closedBy.tag} (${meta.closedBy.id})`,
     `Mensagens: ${messages.length}`,
     '-'.repeat(50),
@@ -311,6 +474,32 @@ async function handlePonto(interaction, action) {
   );
 }
 
+async function handlePontoReport(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
+    await replyEphemeral(interaction, 'O relatório de ponto é exclusivo da equipe.');
+    return;
+  }
+
+  const shifts = loadShifts(interaction.guildId);
+  const record = shifts[interaction.user.id];
+  if (!record) {
+    await replyEphemeral(interaction, 'Você ainda não tem registros de ponto. Bata a entrada para começar.');
+    return;
+  }
+
+  const status = record.startedAt
+    ? `Em serviço desde <t:${Math.floor(record.startedAt / 1000)}:t>`
+    : 'Fora de serviço';
+  const total = formatDuration(record.totalMs ?? 0);
+  await replyEphemeral(
+    interaction,
+    `📊 **Seu ponto**\n${status}\nTotal acumulado: **${total}**`,
+  );
+}
+
 async function openAusenciaModal(interaction) {
   const cfg = getConfig(interaction.guildId);
   if (!cfg || !isStaffMember(interaction.member, cfg)) {
@@ -392,6 +581,22 @@ async function handleGuildMemberAdd(member) {
     if (role) await member.roles.add(role, 'Autorole: entrada no servidor').catch(() => {});
   }
 
+  const joinedChannel = member.guild.channels.cache.find((c) => c.name === cfg.channelName('entrou'));
+  if (joinedChannel) {
+    const joinedEmbed = new EmbedBuilder()
+      .setColor(cfg.ACCENT ?? 0xd4af37)
+      .setTitle('📥 Novo membro')
+      .setDescription(`<@${member.id}> entrou na cidade. Seja bem-vindo!`)
+      .setThumbnail(member.user.displayAvatarURL({ size: 128 }))
+      .addFields({
+        name: 'Conta criada',
+        value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`,
+        inline: true,
+      })
+      .setTimestamp();
+    await joinedChannel.send({ embeds: [joinedEmbed], allowedMentions: { parse: [] } }).catch(() => {});
+  }
+
   const welcomeChannel = member.guild.channels.cache.find((c) => c.name === cfg.channelName('bem-vindo'));
   if (!welcomeChannel) return;
 
@@ -435,12 +640,16 @@ async function handleInteraction(interaction) {
       else if (customId === 'ticket:fechar') await closeTicket(interaction);
       else if (customId === 'ponto:entrada') await handlePonto(interaction, 'entrada');
       else if (customId === 'ponto:saida') await handlePonto(interaction, 'saida');
+      else if (customId === 'ponto:relatorio') await handlePontoReport(interaction);
       else if (customId === 'ausencia:abrir') await openAusenciaModal(interaction);
       return;
     }
 
     if (interaction.isModalSubmit() && interaction.customId === 'ausencia:registrar') {
       await handleAusenciaSubmit(interaction);
+    }
+    if (interaction.isModalSubmit() && interaction.customId === 'ticket:fechar:relatorio') {
+      await handleTicketCloseModal(interaction);
     }
   } catch (error) {
     console.error(`[erro] Falha ao processar interação: ${error.message}`);

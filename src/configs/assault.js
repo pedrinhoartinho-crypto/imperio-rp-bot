@@ -26,7 +26,9 @@ const TICKET_JUNIOR_KEYS = ['staff_rp', 'auxiliar', 'estagiario'];
 
 const STAFF_KEYS = [
   'fundador',
+  'sub_fundador',
   'administrador',
+  'chefe_diretoria',
   'diretor_geral',
   'diretor_operacoes',
   'diretor_tecnologia',
@@ -42,7 +44,9 @@ const STAFF_KEYS = [
 ];
 const STAFF_SENIOR_KEYS = [
   'fundador',
+  'sub_fundador',
   'administrador',
+  'chefe_diretoria',
   'diretor_geral',
   'diretor_operacoes',
   'diretor_tecnologia',
@@ -85,6 +89,15 @@ const TICKETS = [
     color: 0xd4af37,
     instructions: 'Envie o nome do projeto, link do servidor, número de membros e a proposta.',
   },
+  {
+    key: 'loja',
+    label: 'Loja',
+    summary: 'Compras e produtos oficiais',
+    title: 'Atendimento — Loja',
+    color: 0xd4af37,
+    instructions:
+      'Informe o produto ou serviço que você quer comprar, seu personagem e a forma de pagamento combinada. A equipe confirma estoque e entrega.',
+  },
 ];
 
 const FACTION_KEYS = ['rodo', 'prazeres', 'babilonia'];
@@ -101,12 +114,28 @@ const ROLES = [
     perms: ['Administrator'],
   },
   {
+    key: 'sub_fundador',
+    name: 'Sub Fundador',
+    color: '#B71C1C',
+    hoist: true,
+    mentionable: false,
+    perms: ['Administrator'],
+  },
+  {
     key: 'administrador',
     name: 'Administrador',
     color: '#E74C3C',
     hoist: true,
     mentionable: false,
     perms: ['Administrator'],
+  },
+  {
+    key: 'chefe_diretoria',
+    name: 'Chefe de Diretoria',
+    color: '#8E44AD',
+    hoist: true,
+    mentionable: false,
+    perms: ['ManageGuild', 'ManageChannels', 'ManageRoles', 'KickMembers', 'ModerateMembers', 'ManageMessages', 'ManageThreads', 'ViewAuditLog'],
   },
   {
     key: 'diretor_geral',
@@ -261,6 +290,62 @@ const ROLES = [
     perms: [],
   },
   {
+    key: 'vip_rubi',
+    name: 'VIP Rubi',
+    color: '#E0115F',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_safira',
+    name: 'VIP Safira',
+    color: '#4169E1',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_diamante',
+    name: 'VIP Diamante',
+    color: '#7DF9FF',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_ouro',
+    name: 'VIP Ouro',
+    color: '#FFD700',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_prata',
+    name: 'VIP Prata',
+    color: '#C0C0C0',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_bronze',
+    name: 'VIP Bronze',
+    color: '#CD7F32',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
+    key: 'vip_normal',
+    name: 'VIP Normal',
+    color: '#9E9E9E',
+    hoist: true,
+    mentionable: false,
+    perms: [],
+  },
+  {
     key: 'membro',
     name: 'Cidadão',
     color: '#AAB7B8',
@@ -286,7 +371,7 @@ const ROLES = [
   },
   {
     key: 'criador',
-    name: 'Criador de Conteúdo',
+    name: 'Influencer',
     color: '#FF7043',
     hoist: true,
     mentionable: false,
@@ -375,6 +460,19 @@ const CATEGORIES = [
             ]),
           ],
           'Ao permanecer no servidor, você concorda com as regras.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '📥・entrou',
+        ref: 'entrou',
+        preset: 'readonly',
+        topic: 'Registro de entradas no servidor',
+        panel: panel(
+          'Entradas',
+          'Cada novo membro aparece aqui. Dê as boas-vindas e ajude a cidade a crescer.',
+          [],
+          'Registro automático do servidor.',
           { accent: COLORS.gold },
         ),
       },
@@ -647,6 +745,48 @@ const CATEGORIES = [
         ),
       },
       {
+        name: '🎁・sorteios',
+        ref: 'sorteios',
+        preset: 'readonly',
+        topic: 'Sorteios oficiais do servidor',
+        panel: panel(
+          'Sorteios',
+          'Sorteios oficiais da cidade: prêmios, cargos e experiências. Participe e fique de olho nas regras.',
+          [
+            sec('Como participar', [
+              'Leia o sorteio na hora e siga os requisitos.',
+              'Uma participação por pessoa, salvo indicação contrária.',
+              'O resultado sai aqui e no anúncio do vencedor.',
+            ]),
+          ],
+          'Sorteios falsos ou fora deste canal não são válidos.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '🚀・seja-booster',
+        ref: 'booster',
+        preset: 'readonly',
+        topic: 'Apoie o servidor e receba benefícios',
+        panel: panel(
+          'Seja Booster',
+          'Impulsione o Assault RJ e ajude a cidade a crescer. Booster tem reconhecimento e vantagens na comunidade.',
+          [
+            sec('Benefícios', [
+              'Cargo **Booster** exclusivo e destaque no servidor.',
+              'Prioridade em eventos e sorteios especiais.',
+              'Acesso antecipado a novidades e bastidores.',
+            ]),
+            sec('Como ajudar', [
+              'Use o impulso do Nitro no ícone do servidor.',
+              'Fale com a equipe em {{tickets}} para dúvidas.',
+            ]),
+          ],
+          'Obrigado por manter a cidade no ar.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
         name: '📊・enquetes',
         ref: 'enquetes',
         preset: 'readonly',
@@ -698,6 +838,25 @@ const CATEGORIES = [
           [],
           'Provas de denúncia também podem ser enviadas via ticket em {{tickets}}.',
           { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '🎉・eventos',
+        ref: 'eventos',
+        preset: 'public',
+        topic: 'Eventos e ações especiais da cidade',
+        panel: panel(
+          'Eventos',
+          'A cidade nunca para. Acompanhe eventos, operações e ações especiais da equipe e da comunidade.',
+          [
+            sec('O que rola aqui', [
+              'Eventos oficiais com data, local e regras.',
+              'Operações de facções e corporações.',
+              'Ações da comunidade e corridas valendo prêmio.',
+            ]),
+          ],
+          'Eventos oficiais são anunciados pela equipe. Combine os informais em {{procurar-cena}}.',
+          { accent: COLORS.orange },
         ),
       },
       {
@@ -840,6 +999,64 @@ const CATEGORIES = [
         ),
       },
       {
+        name: '📰・jornal',
+        ref: 'jornal',
+        preset: 'public',
+        topic: 'Notícias, bastidores e novidades da cidade',
+        panel: panel(
+          'Jornal da Cidade',
+          'Notícias, bastidores e histórias do Assault RJ. A equipe publica as pautas principais; a comunidade participa com ideias.',
+          [
+            sec('Pautas', [
+              'Novidades do jogo e do servidor.',
+              'Entrevistas e histórias de personagens.',
+              'Cobertura de eventos e operações.',
+            ]),
+          ],
+          'Sugestões de pauta em {{sugestoes}}.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '🎬・shorts',
+        ref: 'shorts',
+        preset: 'public',
+        topic: 'Vídeos curtos e momentos rápidos da comunidade',
+        panel: panel(
+          'Shorts',
+          'Momentos rápidos, edits e cortes da cidade. Vídeos curtos, sem spam e com crédito aos autores.',
+          [],
+          'Vídeos longos e clipes maiores ficam em {{clipes}}.',
+          { accent: COLORS.orange },
+        ),
+      },
+      {
+        name: '💻・comandos',
+        ref: 'comandos',
+        preset: 'readonly',
+        topic: 'Guia de comandos e atalhos do servidor',
+        panel: panel(
+          'Comandos',
+          'Guia rápido dos comandos oficiais e atalhos da cidade.',
+          [
+            sec('Atendimento', [
+              '`/assumir organizacao: <nome> lider: @membro` — assume uma organização.',
+              '`/liberar organizacao: <nome>` — libera uma organização.',
+            ]),
+            sec('Comunicação', [
+              '`/anunciar` — publica um anúncio oficial.',
+              '`/enquete` — cria uma enquete.',
+              '`/advertir` — registra uma advertência.',
+            ]),
+            sec('Ajuda', [
+              'Abra um atendimento em {{tickets}} para suporte.',
+            ]),
+          ],
+          'Comandos de organização são exclusivos da liderança e da equipe.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
         name: '💡・sugestoes',
         ref: 'sugestoes',
         preset: 'public',
@@ -868,6 +1085,82 @@ const CATEGORIES = [
           'Propostas de parceria e divulgação. Envie as informações e a equipe responde via ticket.',
           [sec('Modelo', ['**Projeto:**', '**Link do servidor:**', '**Membros:**', '**Proposta:**'])],
           'Divulgação sem autorização é proibida.',
+          { accent: COLORS.gold },
+        ),
+      },
+    ],
+  },
+  {
+    name: '「🛍️」LOJA',
+    ref: 'cat-loja',
+    preset: 'public',
+    channels: [
+      {
+        name: '🛍️・loja',
+        ref: 'loja',
+        preset: 'readonly',
+        topic: 'Loja oficial do Assault RJ',
+        panel: panel(
+          'Loja Oficial',
+          'Produtos, serviços e vantagens oficiais da cidade. Compre com segurança e receba direto da equipe.',
+          [
+            sec('Como comprar', [
+              'Escolha o produto e clique no botão de atendimento.',
+              'Informe seu personagem, o item e a forma de pagamento.',
+              'A equipe confirma estoque, valor e entrega pelo ticket.',
+            ]),
+            sec('Formas de pagamento', [
+              'Dinheiro do jogo, Robux ou Pix — sempre combinado no ticket.',
+              'Nunca envie valores fora do atendimento oficial.',
+            ]),
+            sec('Entrega', [
+              'Itens digitais são entregues no jogo ou no Discord.',
+              'Produtos personalizados têm prazo combinado com a equipe.',
+            ]),
+          ],
+          'A loja oficial não se responsabiliza por negociações feitas fora do ticket.',
+          {
+            accent: COLORS.gold,
+            button: { id: 'ticket:abrir:loja', label: 'Abrir atendimento de compra', style: 3, emoji: '🛍️' },
+          },
+        ),
+      },
+      {
+        name: '🛒・olx-vendas',
+        ref: 'olx-vendas',
+        preset: 'public',
+        topic: 'Anúncios de compra, venda e troca entre jogadores',
+        panel: panel(
+          'OLX da Cidade',
+          'Compra, venda e troca entre jogadores. Negocie com respeito e cuidado.',
+          [
+            sec('Modelo de anúncio', [
+              '**Produto/serviço:**',
+              '**Preço:**',
+              '**Contato:**',
+              '**Observações:**',
+            ]),
+          ],
+          'Não envie dinheiro real. A equipe não se responsabiliza por negociações entre jogadores.',
+          { accent: COLORS.green },
+        ),
+      },
+      {
+        name: '⭐・avaliacoes-loja',
+        ref: 'loja-avaliacoes',
+        preset: 'public',
+        topic: 'Avaliações da loja oficial',
+        panel: panel(
+          'Avaliações da Loja',
+          'Comprou na loja? Deixe sua avaliação e ajude a melhorar o atendimento.',
+          [
+            sec('Modelo', [
+              '**Produto:**',
+              '**Atendimento:** (nota de 1 a 5)',
+              '**Comentário:**',
+            ]),
+          ],
+          'Avaliações ofensivas ou falsas são removidas.',
           { accent: COLORS.gold },
         ),
       },
@@ -913,6 +1206,26 @@ const CATEGORIES = [
         ),
       },
       {
+        name: '🕒・bate-ponto',
+        ref: 'ponto',
+        preset: 'staff',
+        topic: 'Registro de entrada, saída e ausências da equipe',
+        panel: panel(
+          'Bate-ponto da equipe',
+          'Registre seu turno e mantenha a escala transparente. Entrada e saída ficam salvas por membro.',
+          [
+            sec('Como funciona', [
+              'Clique em **Bater entrada** ao começar o serviço.',
+              'Clique em **Bater saída** ao encerrar o turno.',
+              'Use **Meu relatório** para ver o total acumulado.',
+              'Registre ausências com antecedência pelo botão **Ausência**.',
+            ]),
+          ],
+          'O ponto é exclusivo da equipe. Turnos abertos contam até a saída.',
+          { kind: 'ponto', accent: COLORS.gold },
+        ),
+      },
+      {
         name: '🪜・hierarquia-staff',
         ref: 'hierarquia',
         preset: 'staff',
@@ -923,7 +1236,9 @@ const CATEGORIES = [
           [
             sec('Direção', [
               '**Fundador** — visão geral e decisões finais.',
+              '**Sub Fundador** — apoio direto à fundação e continuidade.',
               '**Administrador** — administração total do servidor.',
+              '**Chefe de Diretoria** — comanda a diretoria e os projetos.',
               '**Diretor Geral** — coordena todas as áreas.',
               '**Diretor de Operações** — equipe, canais e rotina.',
               '**Diretor de Tecnologia** — bots, sistemas e segurança.',
@@ -986,6 +1301,25 @@ const CATEGORIES = [
         ),
       },
       {
+        name: '📊・relatorios-tickets',
+        ref: 'ticket-reports',
+        preset: 'staff',
+        topic: 'Relatórios dos tickets assumidos pela equipe',
+        panel: panel(
+          'Relatórios de tickets',
+          'Cada atendimento assumido vira um registro aqui: quem atendeu, qual setor, o resumo e a resolução.',
+          [
+            sec('O que fica registrado', [
+              'Quem assumiu o atendimento e quem solicitou.',
+              'Setor, resumo do atendimento e resolução.',
+              'Ticket de origem e horário do registro.',
+            ]),
+          ],
+          'Ao fechar um ticket, a equipe preenche o relatório antes da exclusão do canal.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
         name: '🏛️・diretoria',
         ref: 'diretoria',
         preset: 'staff-high',
@@ -1027,6 +1361,7 @@ const LEGACY_CHANNELS = {
 };
 const LEGACY_ROLES = {
   '𝔸𝕊𝕁': ['✦ 𝔸𝕊𝕁 ✦'],
+  Influencer: ['Criador de Conteúdo'],
 };
 
 module.exports = {
