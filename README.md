@@ -5,7 +5,7 @@ Bot em `discord.js` que entrega servidores prontos no padrão dos grandes RPs: e
 O mesmo bot administra **dois servidores**, cada um com a sua configuração:
 
 - **Império RP** (`src/configs/imperio.js`) — visual limpo original, painéis em embed, 35 canais, 35 cargos.
-- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 48 canais, 34 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
+- **Assault RJ** (`src/configs/assault.js`) — projeto novo, do zero: 12 categorias com emoji, 51 canais, 34 cargos e **painéis em Components V2** (containers, separadores e texto moderno do Discord).
 
 Facções e corporações operam em servidores próprios, com hierarquia interna. Aqui ficam o canal de times (quem está livre ou assumido), os canais de recrutamento (facção e corporação), o registro de ações da cidade e os cargos de representação (Líder/Comando) para identificar lideranças.
 
@@ -25,7 +25,7 @@ SETUP_GUILD=imperio npm run setup
 
 ## Assault RJ (Components V2)
 
-Estrutura criada do zero e auditada (0 divergências): 34 cargos, 12 categorias, 48 canais e 49 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
+Estrutura criada do zero e auditada (0 divergências): 34 cargos, 12 categorias, 51 canais e 52 painéis, sem duplicatas. A ordem dos canais dentro de cada categoria é reaplicada a cada setup — canal novo nasce na posição certa.
 
 O padrão visual segue as boas práticas de servidores grandes: **um emoji por canal + divisor `・`** (`📜・regras`), **categorias como divisórias nativas** (`「📌」INFORMAÇÕES`) e nomes curtos, sem fontes exóticas. Categorias já separam os blocos, então não há canais-divisória vazios (pesam no limite e confundem).
 
@@ -89,7 +89,7 @@ Nomes limpos, em minúsculas com hífen (padrão de RP profissional), e categori
 - **Facções e Corporações** — recrutamento-facção e recrutamento-corporação (só líderes e sub-líderes publicam), servidores (lista oficial), avisos-ações
 - **Suporte** — ajuda, abrir-ticket, denúncias (equipe), corregedoria (direção), recursos (equipe), reportar-bugs, avaliar-staff
 - **Candidaturas** — seja-staff (frentes de trabalho), solicitar-tag (tags de criador)
-- **Equipe** — chat-staff, avisos-staff, bate-ponto, hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff
+- **Equipe** — chat-staff, avisos-staff, aguardando (fila de tickets), atendimento (cards em curso), bate-ponto, ponto-geral (só direção), hierarquia-staff, registro-punições, logs-automod, logs-tickets, relatórios-tickets, diretoria (só direção), sala-staff
 - **Tickets** — categoria privada onde os atendimentos são criados automaticamente
 - **Canais de voz** — geral, ação-1, ação-2, eventos (palco), afk
 
@@ -103,10 +103,14 @@ O setor de **Loja** tem atuação separada: o atendimento nasce já na categoria
 - **Assumir atendimento:** qualquer membro da equipe pode assumir; o botão mostra quem está atendendo.
 - **Fechar ticket:** disponível para o autor e para a equipe. Ao fechar, a equipe preenche um relatório (resumo + resolução) que vai para #relatorios-tickets; o bot gera um **transcript completo (.txt)** em #logs-tickets antes de apagar o canal.
 - **Relatórios:** cada atendimento assumido gera um registro em #relatorios-tickets com atendente, solicitante, setor e horário.
+- **Fila visual:** todo ticket novo vira um card em #aguardando (só equipe vê) com botão **Puxar atendimento**; quem assume leva o card para #atendimento com o nome marcado. Ao fechar, os cards saem sozinhos.
 - Um membro só pode ter um atendimento aberto por vez.
 
 ### Bate-ponto com persistência
 Em #bate-ponto, a equipe registra entrada e saída por botão, consulta o total acumulado com **Meu relatório** e registra ausências pelo formulário. O bot salva os horários por guild em `data/<guildId>/bateponto.json`, confirma o horário real e acumula o tempo total de cada membro. Não é possível registrar duas entradas ou uma saída sem entrada.
+
+### Painel de ponto para a direção
+Em #ponto-geral (visível somente para Fundador, Sub Fundador, Administrador, Chefe de Diretoria e Diretores), a direção acompanha a escala em tempo real: quem está **🟢 em serviço**, quem saiu (⚪) e o **total de horas acumuladas** de cada membro da equipe. O painel se atualiza sozinho a cada entrada, saída ou ausência registrada.
 
 ### Registro de ausências
 Em #ausencias, o membro da equipe clica em "Registrar ausência" e preenche um formulário (início, retorno previsto e motivo). O bot publica o registro no canal.

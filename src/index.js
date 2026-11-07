@@ -3,7 +3,7 @@ const http = require('node:http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const setupGuild = require('./setup');
 const { CONFIGS, getConfig, getConfigByKey } = require('./config');
-const { handleInteraction, handleMessage, handleGuildMemberAdd } = require('./components');
+const { handleInteraction, handleMessage, handleGuildMemberAdd, refreshPontoPanel } = require('./components');
 const { registerCommands, handleCommand } = require('./commands');
 const { syncGuildTags, syncMemberTag } = require('./team');
 
@@ -53,6 +53,11 @@ function attach(client) {
       for (const { id, cfg } of targets) {
         const guild = await client.guilds.fetch(id);
         await setupGuild(client, guild, cfg);
+      }
+
+      for (const { id, cfg } of targets) {
+        const guild = await client.guilds.fetch(id).catch(() => null);
+        if (guild) await refreshPontoPanel(guild, cfg).catch(() => {});
       }
 
       if (setupOnly) {

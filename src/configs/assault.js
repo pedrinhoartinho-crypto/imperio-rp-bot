@@ -1160,6 +1160,43 @@ const CATEGORIES = [
         ),
       },
       {
+        name: '⌛・aguardando',
+        ref: 'fila-tickets',
+        preset: 'staff',
+        topic: 'Fila de atendimentos abertos',
+        panel: panel(
+          'Aguardando atendimento',
+          'Cada atendimento novo da cidade cai aqui automaticamente com o setor e o solicitante.',
+          [
+            sec('Como usar', [
+              'Leia o card e clique em **Puxar atendimento**.',
+              'O card sai da fila e entra em 🎫・atendimento com o seu nome.',
+              'O atendimento acontece no canal do ticket, só fecha por lá.',
+            ]),
+          ],
+          'Quem puxar é responsável pelo atendimento até o fechamento.',
+          { accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '🎫・atendimento',
+        ref: 'atendendo-tickets',
+        preset: 'staff',
+        topic: 'Atendimentos em andamento',
+        panel: panel(
+          'Atendimento em andamento',
+          'Aqui ficam os cards dos tickets que já foram assumidos, com o responsável marcado.',
+          [
+            sec('Boas práticas', [
+              'Responda o solicitante no canal do ticket.',
+              'Ao concluir, feche o ticket e preencha o relatório.',
+            ]),
+          ],
+          'O histórico dos atendimentos fica em 📊・relatorios-tickets.',
+          { accent: COLORS.blue },
+        ),
+      },
+      {
         name: '🕒・bate-ponto',
         ref: 'ponto',
         preset: 'staff',
@@ -1177,6 +1214,25 @@ const CATEGORIES = [
           ],
           'O ponto é exclusivo da equipe. Turnos abertos contam até a saída.',
           { kind: 'ponto', accent: COLORS.gold },
+        ),
+      },
+      {
+        name: '📈・ponto-geral',
+        ref: 'ponto-geral',
+        preset: 'staff-high',
+        topic: 'Monitor da escala e das horas da equipe',
+        panel: panel(
+          'Ponto geral',
+          'Monitor em tempo real da escala da equipe. Quem está de plantão, quem já saiu e o total de horas de cada membro.',
+          [
+            sec('Como ler', [
+              '🟢 **Em serviço** — está de plantão agora, com o horário da entrada.',
+              '⚪ **Fora de serviço** — encerrou o turno atual.',
+              '**Total** — horas acumuladas desde o início.',
+            ]),
+          ],
+          'Atualiza sozinho a cada entrada, saída ou ausência registrada.',
+          { accent: COLORS.green },
         ),
       },
       {

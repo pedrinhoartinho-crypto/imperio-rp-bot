@@ -14,12 +14,13 @@ const {
 } = require('discord.js');
 const { getConfig } = require('./config');
 const { buildJoinWelcome } = require('./embeds');
-const { buildV2JoinWelcome } = require('./v2');
+const { buildPanel, buildV2JoinWelcome, titleOfPanel } = require('./v2');
 const { loadShifts, saveShifts } = require('./store');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const claimed = new Map();
 const pendingCloses = new Map();
+const queueCards = new Map();
 
 function namesFor(cfg, keys) {
   return keys.map((key) => cfg.ROLES.find((role) => role.key === key)?.name).filter(Boolean);
@@ -204,6 +205,8 @@ async function openTicket(interaction, key) {
     components: [controls],
   });
 
+  await postTicketCard(guild, cfg, 'fila', channel, ticketCfg).catch(() => {});
+
   await replyEphemeral(interaction, `Ticket aberto: <#${channel.id}>.`);
 }
 
@@ -221,38 +224,162 @@ async function postTicketReport(guild, cfg, embed) {
   await channel.send({ embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
 }
 
-async function assumeTicket(interaction) {
-  const cfg = getConfig(interaction.guildId);
-  if (!cfg) return;
+function ticketQueueChannel(guild, cfg, ref) {
+  return guild.channels.cache.find(
+    (channel) => channel.type === ChannelType.GuildText && channel.name === cfg.channelName?.(ref),
+  );
+}
 
-  const channel = interaction.channel;
-  if (!isTicketChannel(channel, cfg)) {
-    await replyEphemeral(interaction, 'Este botão só funciona dentro de um ticket.');
+async function postTicketCard(guild, cfg, kind, ticketChannel, ticketCfg) {
+  const ref = kind === 'fila' ? 'fila-tickets' : 'atendendo-tickets';
+  const channel = ticketQueueChannel(guild, cfg, ref);
+  if (!channel) return;
+
+  const authorId = (ticketChannel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
+  const staffId = staffIdFromTopic(ticketChannel);
+  const embed = new EmbedBuilder().setColor(ticketCfg?.color ?? cfg.ACCENT ?? 0xd4af37);
+
+  if (kind === 'fila') {
+    embed.setTitle('🆕 Aguardando atendimento').setDescription('Ninguém assumiu ainda. Puxe o atendimento quando puder.');
+  } else {
+    embed.setTitle('🎫 Em atendimento').setDescription('Converse, resolva e feche o ticket no canal.');
+  }
+
+  embed.addFields(
+    { name: 'Setor', value: ticketCfg?.label ?? 'Atendimento', inline: true },
+    { name: 'Solicitante', value: authorId ? `<@${authorId}>` : 'Desconhecido', inline: true },
+    ...(kind === 'curso' && staffId ? [{ name: 'Atendente', value: `<@${staffId}>`, inline: true }] : []),
+  );
+  embed.setFooter({ text: `ticket:${ticketChannel.id}` }).setTimestamp();
+
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setLabel('Abrir ticket')
+      .setURL(`https://discord.com/channels/${guild.id}/${ticketChannel.id}`),
+    ...(kind === 'fila'
+      ? [
+          new ButtonBuilder()
+            .setCustomId(`ticket:assumir:fila:${ticketChannel.id}`)
+            .setLabel('Puxar atendimento')
+            .setStyle(ButtonStyle.Success),
+        ]
+      : []),
+  );
+
+  const message = await channel.send({ embeds: [embed], components: [row] }).catch(() => null);
+  if (message) {
+    const entry = queueCards.get(ticketChannel.id) ?? {};
+    entry[kind === 'fila' ? 'fila' : 'curso'] = { ch: channel.id, id: message.id };
+    queueCards.set(ticketChannel.id, entry);
+  }
+}
+
+async function deleteTicketCard(guild, cfg, kind, ticketId) {
+  const ref = kind === 'fila' ? 'fila-tickets' : 'atendendo-tickets';
+  const channel = ticketQueueChannel(guild, cfg, ref);
+  if (!channel) return;
+
+  const stored = queueCards.get(ticketId)?.[kind];
+  if (stored && stored.ch === channel.id) {
+    const message = channel.messages.cache.get(stored.id) ?? (await channel.messages.fetch(stored.id).catch(() => null));
+    if (message) await message.delete().catch(() => {});
+    const entry = queueCards.get(ticketId);
+    if (entry) delete entry[kind];
     return;
   }
 
-  const claimedTicket = ticketFromTopic(cfg, channel).ticketCfg;
-  if (!canAttendTicket(interaction.member, cfg, claimedTicket)) {
+  let message = channel.messages.cache.find(
+    (item) => item.author.id === channel.client.user.id && item.embeds.some((embed) => embed.footer?.text === `ticket:${ticketId}`),
+  );
+  if (!message) {
+    const recent = await channel.messages.fetch({ limit: 50 }).catch(() => null);
+    message = recent?.find(
+      (item) => item.author.id === channel.client.user.id && item.embeds.some((embed) => embed.footer?.text === `ticket:${ticketId}`),
+    ) ?? null;
+  }
+  if (message) await message.delete().catch(() => {});
+}
+
+async function clearTicketCards(guild, cfg, ticketId) {
+  await deleteTicketCard(guild, cfg, 'fila', ticketId).catch(() => {});
+  await deleteTicketCard(guild, cfg, 'curso', ticketId).catch(() => {});
+  queueCards.delete(ticketId);
+}
+
+async function refreshPontoPanel(guild, cfg) {
+  const channel = guild.channels.cache.find(
+    (item) => item.type === ChannelType.GuildText && item.name === cfg.channelName?.('ponto-geral'),
+  );
+  if (!channel) return;
+
+  const shifts = loadShifts(guild.id);
+  const entries = Object.entries(shifts).map(([id, rec]) => ({ id, rec }));
+  entries.sort(
+    (a, b) => (b.rec.startedAt ?? 0) - (a.rec.startedAt ?? 0) || (b.rec.totalMs ?? 0) - (a.rec.totalMs ?? 0),
+  );
+
+  const lines = entries.map(({ id, rec }) =>
+    rec.startedAt
+      ? `🟢 Em serviço — **<@${id}>** · desde <t:${Math.floor(rec.startedAt / 1000)}:t> · total **${formatDuration(rec.totalMs ?? 0)}**`
+      : `⚪ Fora de serviço — **<@${id}>** · total **${formatDuration(rec.totalMs ?? 0)}**`,
+  );
+
+  const payload = buildPanel(
+    {
+      title: 'Ponto geral',
+      intro: lines.length
+        ? 'Monitor em tempo real da escala: quem está de plantão, quem já saiu e o total de horas de cada membro da equipe.'
+        : 'Monitor em tempo real da escala. Ninguém bateu ponto ainda — os registros aparecem aqui na primeira entrada.',
+      sections: [{ label: 'Escala atual', lines }],
+      note: 'Este painel atualiza sozinho a cada entrada, saída ou ausência registrada.',
+      accent: 0x1e8449,
+    },
+    { cfg, guild, channels: {}, channelIcon: '📈' },
+  );
+
+  const recent = (await channel.messages.fetch({ limit: 50 }).catch(() => null)) ?? null;
+  const current = recent?.find(
+    (message) =>
+      message.author.id === guild.client.user.id &&
+      message.flags.has(MessageFlags.IsComponentsV2) &&
+      titleOfPanel(message) === 'ponto geral',
+  );
+
+  if (current) await current.edit({ components: payload.components }).catch(() => {});
+  else await channel.send({ ...payload, allowedMentions: { parse: [] } }).catch(() => {});
+}
+
+async function assumeTicket(interaction, filaChannelId) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  const ticketChannel = filaChannelId
+    ? interaction.guild.channels.cache.get(filaChannelId)
+    : interaction.channel;
+  if (!ticketChannel || !isTicketChannel(ticketChannel, cfg)) {
+    await replyEphemeral(interaction, 'Este botão só funciona em um ticket aberto.');
+    return;
+  }
+
+  const ticketCfg = ticketFromTopic(cfg, ticketChannel).ticketCfg;
+  if (!canAttendTicket(interaction.member, cfg, ticketCfg)) {
     await replyEphemeral(interaction, 'Somente a equipe responsável pode assumir este atendimento.');
     return;
   }
 
-  const current = claimed.get(channel.id);
+  const current = claimed.get(ticketChannel.id);
   if (current && current !== interaction.user.id) {
     await replyEphemeral(interaction, `Este atendimento já está com <@${current}>.`);
     return;
   }
+  claimed.set(ticketChannel.id, interaction.user.id);
 
-  claimed.set(channel.id, interaction.user.id);
+  const baseTopic = (ticketChannel.topic ?? '').replace(/\s*\|\s*staff:\d{17,20}/, '');
+  await ticketChannel.setTopic(`${baseTopic} | staff:${interaction.user.id}`.slice(0, 1024), 'Ticket assumido').catch(() => {});
 
-  const baseTopic = (channel.topic ?? '').replace(/\s*\|\s*staff:\d{17,20}/, '');
-  await channel
-    .setTopic(`${baseTopic} | staff:${interaction.user.id}`.slice(0, 1024), 'Ticket assumido')
-    .catch(() => {});
-
-  const authorId = (channel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
-  const key = (channel.topic?.match(/^ticket:([a-z]+)/) ?? [])[1];
-  const sector = cfg.TICKETS.find((ticket) => ticket.key === key)?.label ?? 'Atendimento';
+  const authorId = (ticketChannel.topic?.match(/\((\d{17,20})\)/) ?? [])[1];
+  const sector = ticketCfg?.label ?? 'Atendimento';
 
   const report = new EmbedBuilder()
     .setColor(0x2ecc71)
@@ -263,13 +390,13 @@ async function assumeTicket(interaction) {
       { name: 'Solicitante', value: authorId ? `<@${authorId}>` : 'Desconhecido', inline: true },
       {
         name: 'Ticket',
-        value: `[#${channel.name}](https://discord.com/channels/${channel.guild.id}/${channel.id})`,
+        value: `[#${ticketChannel.name}](https://discord.com/channels/${ticketChannel.guild.id}/${ticketChannel.id})`,
       },
     )
-    .setFooter({ text: `Ticket ${channel.id}` })
+    .setFooter({ text: `Ticket ${ticketChannel.id}` })
     .setTimestamp();
 
-  await postTicketReport(channel.guild, cfg, report);
+  await postTicketReport(ticketChannel.guild, cfg, report);
 
   const label = `Atendendo: ${interaction.member.displayName}`.slice(0, 80);
   const controls = new ActionRowBuilder().addComponents(
@@ -277,8 +404,22 @@ async function assumeTicket(interaction) {
     new ButtonBuilder().setCustomId('ticket:fechar').setLabel('Fechar ticket').setStyle(ButtonStyle.Danger),
   );
 
-  await interaction.message.edit({ components: [controls] });
-  await interaction.reply({ content: `Atendimento assumido por <@${interaction.user.id}>.` });
+  if (filaChannelId) {
+    const recent = await ticketChannel.messages.fetch({ limit: 25 }).catch(() => null);
+    const origin = recent?.find(
+      (message) =>
+        message.author.id === interaction.client.user.id &&
+        message.components.some((row) => row.components.some((button) => button.customId === 'ticket:assumir')),
+    );
+    if (origin) await origin.edit({ components: [controls] }).catch(() => {});
+    await replyEphemeral(interaction, `Você assumiu <#${ticketChannel.id}>.`);
+  } else {
+    await interaction.message.edit({ components: [controls] }).catch(() => {});
+    await interaction.reply({ content: `Atendimento assumido por <@${interaction.user.id}>.` });
+  }
+
+  await deleteTicketCard(ticketChannel.guild, cfg, 'fila', ticketChannel.id).catch(() => {});
+  await postTicketCard(ticketChannel.guild, cfg, 'curso', ticketChannel, ticketCfg).catch(() => {});
 }
 
 async function closeTicket(interaction) {
@@ -349,6 +490,7 @@ async function closeTicket(interaction) {
 
   claimed.delete(channel.id);
   pendingCloses.delete(channel.id);
+  await clearTicketCards(channel.guild, cfg, channel.id).catch(() => {});
   await wait(1500);
   await channel.delete(`Ticket fechado por ${interaction.user.tag}`).catch(() => {});
 }
@@ -398,6 +540,7 @@ async function handleTicketCloseModal(interaction) {
 
   claimed.delete(channel.id);
   pendingCloses.delete(channel.id);
+  await clearTicketCards(channel.guild, cfg, channel.id).catch(() => {});
   await wait(1500);
   await channel.delete(`Ticket fechado por ${interaction.user.tag}`).catch(() => {});
 }
@@ -469,6 +612,7 @@ async function handlePonto(interaction, action) {
     record.startedAt = now;
     shifts[interaction.user.id] = record;
     saveShifts(guildId, shifts);
+    await refreshPontoPanel(interaction.guild, cfg).catch(() => {});
     await replyEphemeral(interaction, `Entrada registrada às <t:${Math.floor(now / 1000)}:t>. Bom serviço!`);
     return;
   }
@@ -484,6 +628,7 @@ async function handlePonto(interaction, action) {
   shifts[interaction.user.id] = record;
   saveShifts(guildId, shifts);
 
+  await refreshPontoPanel(interaction.guild, cfg).catch(() => {});
   await replyEphemeral(
     interaction,
     `Saída registrada. Sessão: **${formatDuration(session)}** · Total acumulado: **${formatDuration(record.totalMs)}**.`,
@@ -582,6 +727,7 @@ async function handleAusenciaSubmit(interaction) {
     .setTimestamp();
 
   if (interaction.channel) await interaction.channel.send({ embeds: [embed] }).catch(() => {});
+  await refreshPontoPanel(interaction.guild, cfg).catch(() => {});
   await interaction.reply({ content: 'Ausência registrada. A direção foi informada.', flags: MessageFlags.Ephemeral });
 }
 
@@ -653,6 +799,8 @@ async function handleInteraction(interaction) {
       else if (customId === 'ticket:abrir') await openTicket(interaction, 'suporte');
       else if (customId.startsWith('ticket:abrir:')) await openTicket(interaction, customId.slice('ticket:abrir:'.length));
       else if (customId === 'ticket:assumir') await assumeTicket(interaction);
+      else if (customId.startsWith('ticket:assumir:fila:'))
+        await assumeTicket(interaction, customId.slice('ticket:assumir:fila:'.length));
       else if (customId === 'ticket:fechar') await closeTicket(interaction);
       else if (customId === 'ponto:entrada') await handlePonto(interaction, 'entrada');
       else if (customId === 'ponto:saida') await handlePonto(interaction, 'saida');
@@ -673,4 +821,4 @@ async function handleInteraction(interaction) {
   }
 }
 
-module.exports = { handleInteraction, handleMessage, handleGuildMemberAdd, isStaffMember, replyEphemeral };
+module.exports = { handleInteraction, handleMessage, handleGuildMemberAdd, isStaffMember, replyEphemeral, refreshPontoPanel };
