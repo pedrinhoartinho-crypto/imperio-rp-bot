@@ -1,11 +1,11 @@
 require('dotenv').config();
-const http = require('node:http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const setupGuild = require('./setup');
 const { CONFIGS, getConfig, getConfigByKey } = require('./config');
 const { handleInteraction, handleMessage, handleGuildMemberAdd, refreshPontoPanel } = require('./components');
 const { registerCommands, handleCommand } = require('./commands');
 const { syncGuildTags, syncMemberTag } = require('./team');
+const { startHttpServer } = require('./gameLogs');
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
@@ -66,6 +66,8 @@ function attach(client) {
         process.exit(0);
       }
 
+      startHttpServer(client);
+
       for (const { id } of targets) {
         const guild = await client.guilds.fetch(id);
         await registerCommands(guild);
@@ -116,21 +118,4 @@ function launch(intents, allowFallback) {
   });
 }
 
-function startKeepAlive() {
-  const url = process.env.RENDER_EXTERNAL_URL;
-  if (!url) return;
-
-  const port = Number(process.env.PORT) || 3000;
-  http
-    .createServer((req, res) => {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('RP Bot online');
-    })
-    .listen(port, () => console.log(`[ok] Servidor HTTP na porta ${port} (keep-alive do Render).`));
-
-  setInterval(() => fetch(url).catch(() => {}), 10 * 60 * 1000);
-  console.log('[ok] Auto-ping ativado: o Render não vai dormir.');
-}
-
-startKeepAlive();
 launch([...BASE_INTENTS, GatewayIntentBits.GuildMembers], true);

@@ -90,6 +90,11 @@ function buildOverwrites(preset, ctx, chCfg = {}) {
       senior.forEach((id) => push(id, allowAll));
       junior.forEach((id) => push(id, [], [P.ViewChannel]));
       break;
+    case 'logs':
+      // Canais de log: a equipe lê, mas só o bot escreve.
+      push(everyone, [], [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AddReactions]);
+      staff.forEach((id) => push(id, [P.ViewChannel, P.ReadMessageHistory, P.AddReactions]));
+      break;
     case 'apply':
       push(
         everyone,
