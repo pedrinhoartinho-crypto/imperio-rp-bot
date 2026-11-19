@@ -301,7 +301,7 @@ O bot expõe no Render a rota `GET /loja/<segredo>/<userId>.json`, que devolve o
 
 ### Modo local (fallback para testes)
 
-Sem `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, o bot grava em `LOJA_KEY_DIR/<segredo>/<userId>.json` e serve a mesma rota manualmente por um túnel (cloudflared). Nesse caso, aponte o `LojaConfig.BaseUrl` para a URL do túnel. O modo local não é adequado para produção no Render, porque o disco é efêmero.
+Sem `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, o bot grava em `LOJA_KEY_DIR/<segredo>/<userId>.json` e serve a mesma rota `/loja/...` pelo próprio servidor HTTP. Para o jogo acessar, aponte um túnel (cloudflared) para a porta do bot (padrão 3000) e use a URL do túnel no `LojaConfig.BaseUrl`. O modo local não é adequado para produção no Render, porque o disco é efêmero.
 
 ### Venda manual
 
