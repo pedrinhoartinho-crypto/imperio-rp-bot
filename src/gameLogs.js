@@ -2,7 +2,7 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const { EmbedBuilder } = require('discord.js');
 const { CONFIGS, getConfig, getConfigByKey } = require('./config');
-const { getUserKeys, isConfigured: lojaConfigured } = require('./roblox');
+const { getUserKeys, isConfigured: lojaConfigured, backend: lojaBackend } = require('./roblox');
 
 // Cada categoria do jogo cai em um canal separado da categoria 「📊」LOGS.
 const CATEGORY_MAP = {
@@ -289,6 +289,9 @@ async function handleRequest(req, res) {
       bot: clientRef?.user?.tag ?? null,
       logs: Boolean(process.env.LOG_TOKEN),
       loja: lojaConfigured(),
+      lojaBackend: lojaBackend(),
+      pix: Boolean(process.env.PIX_KEY?.trim()),
+      ocr: Boolean(process.env.OCR_API_KEY?.trim()),
       categories: Object.keys(CATEGORY_MAP),
     });
   }
