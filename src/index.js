@@ -6,6 +6,7 @@ const { handleInteraction, handleMessage, handleGuildMemberAdd, refreshPontoPane
 const { registerCommands, handleCommand } = require('./commands');
 const { syncGuildTags, syncMemberTag } = require('./team');
 const { startHttpServer } = require('./gameLogs');
+const { missingConfig } = require('./roblox');
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
@@ -46,6 +47,17 @@ function resolveTargets() {
 function attach(client) {
   client.once('ready', async () => {
     console.log(`[info] Conectado como ${client.user.tag}`);
+
+    const missingRoblox = missingConfig();
+    if (missingRoblox.length) {
+      console.warn(`[aviso] Loja sem integração Roblox: configure ${missingRoblox.join(', ')} no .env.`);
+    }
+    if (!process.env.OCR_API_KEY) {
+      console.warn('[aviso] OCR_API_KEY ausente: comprovantes da loja exigirão aprovação manual.');
+    }
+    if (!process.env.PIX_KEY) {
+      console.warn('[aviso] PIX_KEY ausente: a loja não conseguirá mostrar a chave Pix.');
+    }
 
     const targets = resolveTargets();
 

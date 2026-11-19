@@ -98,7 +98,7 @@ const TICKETS = [
     staffKey: 'vendedor',
     categoryKey: 'cat-tickets-loja',
     instructions:
-      'Informe o produto ou serviço que você quer comprar, seu personagem e a forma de pagamento combinada. A equipe confirma estoque e entrega.',
+      'Escolha o produto no painel abaixo, informe seu usuário Roblox e envie o comprovante Pix neste ticket. A conferência é automática e a chave chega por DM. Se algo falhar, um vendedor confere manualmente.',
   },
 ];
 

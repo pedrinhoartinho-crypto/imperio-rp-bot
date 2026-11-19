@@ -256,9 +256,65 @@ src/
   v2.js             renderer Components V2 (Assault)
   setup.js          criação de cargos, canais, painéis, ajustes e AutoMod
   components.js     interações: cargos, tickets, bate-ponto, ausências e sugestões
-  commands.js       comandos slash (/anunciar, /enquete, /advertir, /assumir, /liberar)
+  commands.js       comandos slash (/anunciar, /enquete, /advertir, /assumir, /liberar, /gerarkey)
+  loja.js           fluxo da Loja: produto, comprovante, OCR, trava anti-reuso e entrega
+  products.js       catálogo de produtos e grants entregues no jogo
+  keys.js           geração de chaves + gravação dos JSONs por comprador
+  receipts.js       OCR.space, leitura de valores/datas/favorecido e fingerprint
+  roblox.js         armazenamento da loja (Upstash Redis + fallback local) e resolução de usuário Roblox
   index.js          conexão, setup multi-guild e orquestração
 ```
+
+## Loja com entrega automática (OCR + chave, sem Open Cloud)
+
+O ticket de **Loja** mostra o catálogo, pede o usuário Roblox, exibe o Pix e recebe o comprovante. O bot:
+
+1. baixa a imagem e lê com OCR.space;
+2. confere valor, favorecido e data;
+3. trava o comprovante no Upstash Redis (`loja:receipt:*`) para impedir reuso;
+4. grava a chave (`loja:key:*`) e o índice do comprador (`loja:user:<userId>`);
+5. envia a chave por DM; se a DM falhar, mostra no ticket.
+
+O bot expõe no Render a rota `GET /loja/<segredo>/<userId>.json`, que devolve o JSON público do comprador. O jogo consulta essa rota por `HttpService` e resgata em **Configurações → RESGATAR CÓDIGO**. O servidor valida a chave, o vínculo com o `userId`, marca como usada em `ProductKeyUses` e entrega os `grants` (arma, carro ou dinheiro). Armas compradas ficam salvas em `ProductEntitlements` e voltam em todo spawn.
+
+### Configuração (Render + Upstash)
+
+1. **Upstash:** crie um Redis gratuito em <https://console.upstash.com/redis> e copie a **REST URL** e o **REST TOKEN**.
+2. **Variáveis no Render** (Environment do serviço `imperio-rp-bot`):
+   - `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`;
+   - `LOJA_KEY_SECRET`: segredo longo que vai na URL (o mesmo do `LojaConfig` no jogo);
+   - `PIX_KEY`, `PIX_NAME`, `OCR_API_KEY` (e, se quiser, `LOG_TOKEN`/`LOG_GUILD_ID`).
+3. **Jogo:** em `ServerScriptService.LojaConfig`, use:
+   - `BaseUrl = "https://imperio-rp-bot.onrender.com"`;
+   - `Path = "/loja"`;
+   - `Secret` igual ao `LOJA_KEY_SECRET`.
+   O `KeySystem` lê esse módulo e não precisa de Open Cloud.
+4. **Pix:** preencha `PIX_KEY` e `PIX_NAME`. O `PIX_NAME` precisa ser o mesmo nome do recebedor que aparece no comprovante.
+5. **OCR:** crie uma chave gratuita em <https://ocr.space/ocrapi> e preencha `OCR_API_KEY`. Sem ela, o comprovante vai para aprovação manual do vendedor.
+6. **Produtos:** edite `src/products.js`. Cada produto tem `id`, `name`, `price` e `grants`. Exemplos:
+   - arma: `{ type: 'weapon', name: 'AKM', folder: 'LojaFolder' }`
+   - carro: `{ type: 'car', name: 'Corolla' }`
+   - dinheiro: `{ type: 'money', amount: 100000 }`
+7. **Deploy:** commit/push no GitHub; o Render redeploya sozinho. Confira `https://imperio-rp-bot.onrender.com/health` (deve mostrar `loja: true`).
+
+> No plano free do Render o serviço hiberna sem tráfego. O bot já se auto-pinga a cada 10 minutos via `RENDER_EXTERNAL_URL`.
+
+### Modo local (fallback para testes)
+
+Sem `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, o bot grava em `LOJA_KEY_DIR/<segredo>/<userId>.json` e serve a mesma rota manualmente por um túnel (cloudflared). Nesse caso, aponte o `LojaConfig.BaseUrl` para a URL do túnel. O modo local não é adequado para produção no Render, porque o disco é efêmero.
+
+### Venda manual
+
+`/gerarkey produto:<id> usuario:<nome Roblox> [membro:@alguém] [motivo:...]` gera a chave e, se informado, envia a DM. A chave também aparece na resposta efêmera do comando.
+
+### Segurança
+
+- A chave é de uso único e vinculada ao `userId` do Roblox.
+- O comprovante é travado por hash da imagem e pelo E2E Pix no Upstash; reenvios do mesmo comprovante não geram outra chave.
+- Se o OCR falhar ou o valor/favorecido não conferir, o ticket mostra o botão **Aprovar e entregar** apenas para vendedores/equipe.
+- O JSON público não leva dados do comprovante; o registro completo fica em `loja:key:*` no Redis.
+- A rota `/loja/<segredo>/<userId>.json` usa comparação de segredo em tempo constante e limita requisições por IP. Não divulgue o segredo.
+- No Upstash free, acompanhe o limite de comandos do plano para não interromper as vendas.
 
 ## Solução de problemas
 

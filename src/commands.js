@@ -4,6 +4,9 @@ const { isStaffMember, replyEphemeral } = require('./components');
 const { buildPanel, titleOfPanel, titleOfPayload } = require('./v2');
 const { loadOrgs, saveOrgs } = require('./store');
 const { syncMemberTag } = require('./team');
+const { getProduct, productChoices, formatPrice } = require('./products');
+const { resolveRobloxUser, isConfigured, missingConfig } = require('./roblox');
+const { createKey, deliveryMessage } = require('./keys');
 
 const ORG_CHOICES = [
   { name: 'Babilônia', value: 'babilonia' },
@@ -71,6 +74,25 @@ const COMMANDS = [
     )
     .addStringOption((option) =>
       option.setName('motivo').setDescription('Motivo da advertência').setRequired(true).setMaxLength(500),
+    ),
+  new SlashCommandBuilder()
+    .setName('gerarkey')
+    .setDescription('Gera uma chave de produto manualmente (equipe)')
+    .addStringOption((option) =>
+      option
+        .setName('produto')
+        .setDescription('Produto vendido')
+        .setRequired(true)
+        .addChoices(...productChoices()),
+    )
+    .addStringOption((option) =>
+      option.setName('usuario').setDescription('Usuário Roblox do comprador').setRequired(true).setMaxLength(20),
+    )
+    .addUserOption((option) =>
+      option.setName('membro').setDescription('Enviar a chave por DM para este membro').setRequired(false),
+    )
+    .addStringOption((option) =>
+      option.setName('motivo').setDescription('Motivo ou observação da venda').setRequired(false).setMaxLength(200),
     ),
 ];
 
@@ -358,12 +380,76 @@ async function handleLiberar(interaction) {
   await replyEphemeral(interaction, `**${role.name}** está livre de novo.`);
 }
 
+async function handleGerarKey(interaction) {
+  const cfg = getConfig(interaction.guildId);
+  if (!cfg) return;
+
+  if (!isStaffMember(interaction.member, cfg)) {
+    await replyEphemeral(interaction, 'Apenas membros da equipe podem gerar chaves.');
+    return;
+  }
+
+  if (!isConfigured()) {
+    await replyEphemeral(interaction, `Integração Roblox incompleta: configure ${missingConfig().join(', ')} no bot.`);
+    return;
+  }
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const product = getProduct(interaction.options.getString('produto'));
+  if (!product) {
+    await interaction.editReply({ content: 'Produto não encontrado no catálogo.' }).catch(() => {});
+    return;
+  }
+
+  let buyer;
+  try {
+    buyer = await resolveRobloxUser(interaction.options.getString('usuario'));
+  } catch (error) {
+    await interaction.editReply({ content: `❌ ${error.message}` }).catch(() => {});
+    return;
+  }
+
+  let record;
+  try {
+    record = await createKey({
+      product,
+      buyer,
+      source: 'manual',
+      createdBy: `${interaction.user.tag} (${interaction.user.id})`,
+      note: interaction.options.getString('motivo') || null,
+    });
+  } catch (error) {
+    await interaction.editReply({ content: `❌ ${error.message}` }).catch(() => {});
+    return;
+  }
+
+  const member = interaction.options.getMember('membro');
+  let dmStatus = 'DM não solicitada.';
+  if (member) {
+    const ok = await member.send(deliveryMessage(record)).then(() => true).catch(() => false);
+    dmStatus = ok ? `DM enviada para ${member}.` : `Não consegui enviar DM para ${member}.`;
+  }
+
+  await interaction
+    .editReply({
+      content: [
+        `✅ Chave gerada — **${product.name}** (${formatPrice(product.price)})`,
+        `Conta Roblox: **@${buyer.name}** (${buyer.id})`,
+        `Chave: \`${record.code}\``,
+        dmStatus,
+      ].join('\n'),
+    })
+    .catch(() => {});
+}
+
 const HANDLERS = {
   assumir: handleAssumir,
   liberar: handleLiberar,
   anunciar: handleAnunciar,
   enquete: handleEnquete,
   advertir: handleAdvertir,
+  gerarkey: handleGerarKey,
 };
 
 async function registerCommands(guild) {

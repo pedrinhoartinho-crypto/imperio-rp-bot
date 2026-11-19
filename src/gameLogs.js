@@ -2,6 +2,7 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const { EmbedBuilder } = require('discord.js');
 const { CONFIGS, getConfig, getConfigByKey } = require('./config');
+const { getUserKeys, isConfigured: lojaConfigured } = require('./roblox');
 
 // Cada categoria do jogo cai em um canal separado da categoria 「📊」LOGS.
 const CATEGORY_MAP = {
@@ -71,6 +72,15 @@ function tokenOk(req) {
 
   const a = Buffer.from(String(header));
   const b = Buffer.from(String(expected));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function lojaSecretOk(provided) {
+  const expected = process.env.LOJA_KEY_SECRET?.trim() || '';
+  if (!expected) return false;
+
+  const a = Buffer.from(String(provided));
+  const b = Buffer.from(expected);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
@@ -278,8 +288,38 @@ async function handleRequest(req, res) {
       ok: true,
       bot: clientRef?.user?.tag ?? null,
       logs: Boolean(process.env.LOG_TOKEN),
+      loja: lojaConfigured(),
       categories: Object.keys(CATEGORY_MAP),
     });
+  }
+
+  // O jogo consulta as chaves do comprador por aqui (HttpService).
+  const lojaMatch = url.pathname.match(/^\/loja\/([A-Za-z0-9_-]{8,128})\/(\d{1,20})\.json$/);
+  if (req.method === 'GET' && lojaMatch) {
+    const [, secret, userId] = lojaMatch;
+    if (!lojaSecretOk(secret)) {
+      return sendJson(res, 404, { ok: false, error: 'not found' });
+    }
+
+    if (!lojaConfigured()) {
+      return sendJson(res, 503, { ok: false, error: 'loja não configurada no bot' });
+    }
+
+    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '')
+      .split(',')[0]
+      .trim();
+    if (rateLimited(`loja:${ip}`)) {
+      return sendJson(res, 429, { ok: false, error: 'rate limit' });
+    }
+
+    try {
+      const keys = await getUserKeys(Number(userId));
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      return sendJson(res, 200, keys);
+    } catch (error) {
+      console.error(`[loja] Falha ao consultar chaves: ${error.message}`);
+      return sendJson(res, 503, { ok: false, error: 'loja indisponível no momento' });
+    }
   }
 
   const logPaths = new Set(['/api/game-log', '/api/logs', '/api/log']);

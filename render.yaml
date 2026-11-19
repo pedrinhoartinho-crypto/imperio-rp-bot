@@ -11,3 +11,37 @@ services:
         sync: false
       - key: GUILD_ID
         sync: false
+      # Logs do jogo (Roblox -> bot -> Discord)
+      - key: LOG_TOKEN
+        sync: false
+      - key: LOG_GUILD_ID
+        sync: false
+      # Loja: segredo usado na URL /loja/<segredo>/<userId>.json
+      - key: LOJA_KEY_SECRET
+        sync: false
+      # Upstash Redis (REST). Sem isso o Render cai no modo local e perde as
+      # chaves a cada deploy, porque o disco é efêmero.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: KEY_PREFIX
+        value: ASSAULT
+      # Pix mostrado no ticket
+      - key: PIX_KEY
+        sync: false
+      - key: PIX_NAME
+        sync: false
+      # OCR dos comprovantes (OCR.space); sem isso cai na aprovação manual.
+      - key: OCR_API_KEY
+        sync: false
+      - key: OCR_LANGUAGE
+        value: por
+      - key: OCR_ENGINE
+        value: "2"
+      - key: RECEIPT_MAX_AGE_DAYS
+        value: "7"
+      - key: LOJA_MAX_RECEIPT_MB
+        value: "8"
+      - key: LOJA_LOG_CHANNEL
+        sync: false

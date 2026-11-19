@@ -16,6 +16,14 @@ const { getConfig } = require('./config');
 const { buildJoinWelcome } = require('./embeds');
 const { buildPanel, buildV2JoinWelcome, titleOfPanel } = require('./v2');
 const { loadShifts, saveShifts } = require('./store');
+const {
+  postLojaPanel,
+  handleProductSelect,
+  handleBuyerModal,
+  handleReceiptMessage,
+  handleManualApprove,
+  handlePixButton,
+} = require('./loja');
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const claimed = new Map();
@@ -204,6 +212,10 @@ async function openTicket(interaction, key) {
     embeds: [embed],
     components: [controls],
   });
+
+  if (ticketCfg.key === 'loja') {
+    await postLojaPanel(channel, cfg).catch(() => {});
+  }
 
   await postTicketCard(guild, cfg, 'fila', channel, ticketCfg).catch(() => {});
 
@@ -782,6 +794,14 @@ async function handleMessage(message) {
 
   const cfg = getConfig(message.guild.id);
   if (!cfg) return;
+
+  if (message.channel.topic?.startsWith('ticket:loja') && message.attachments.size > 0) {
+    await handleReceiptMessage(message, cfg).catch((error) =>
+      console.error(`[erro] Falha ao processar comprovante da loja: ${error.message}`),
+    );
+    return;
+  }
+
   if (message.channel.name !== cfg.channelName('sugestoes')) return;
 
   await message.react('👍').catch(() => {});
@@ -806,6 +826,18 @@ async function handleInteraction(interaction) {
       else if (customId === 'ponto:saida') await handlePonto(interaction, 'saida');
       else if (customId === 'ponto:relatorio') await handlePontoReport(interaction);
       else if (customId === 'ausencia:abrir') await openAusenciaModal(interaction);
+      else if (customId === 'loja:pix') await handlePixButton(interaction);
+      else if (customId.startsWith('loja:aprovar:')) await handleManualApprove(interaction);
+      return;
+    }
+
+    if (interaction.isStringSelectMenu() && interaction.customId === 'loja:produto') {
+      await handleProductSelect(interaction);
+      return;
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId.startsWith('loja:usuario:')) {
+      await handleBuyerModal(interaction);
       return;
     }
 
